@@ -54,17 +54,21 @@ inccurs:
 	mov ah,byte[xpos]
 	mov al,byte[ypos]
 	
+	cmp al,24
+	jge .scroll
+
 	cmp ah,80
 	jge .incy
 	add byte[xpos],1
 	jmp .done
 .scroll
 	call scrollup
+	jmp .done
 .incy
 	mov byte[xpos],0
-	add byte[ypos],1
-	cmp byte[ypos],25
+	cmp byte[ypos],24
 	jge .scroll
+	add byte[ypos],1
 .done
 ret
 
@@ -179,10 +183,6 @@ tostring:		;RAX - int, RDI - string out
 	pop rax
 ret
 
-printreg:		;print rax!
-	
-ret
-
 newline:
 	mov byte[xpos],0
 	add byte[ypos],1
@@ -253,10 +253,13 @@ input:		;rdi - string to typietype into
 ret
 
 compare:	;Compares string in rsi to rdi. stc if equal
+	push rdi
+	push rsi
+	push rax
 .loop
 	mov al,byte[rsi]
-	mov bl,byte[rdi]
-	cmp al,bl
+	mov ah,byte[rdi]
+	cmp al,ah
 	jne .no
 	cmp al,0
 	je .equal
@@ -269,6 +272,9 @@ compare:	;Compares string in rsi to rdi. stc if equal
 .equal
 	stc
 .done
+	pop rax
+	pop rsi
+	pop rdi
 ret
 
 key db 0

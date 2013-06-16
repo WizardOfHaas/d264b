@@ -10,12 +10,17 @@ shell:
 	call compare
 	jc .docmd
 	add rsi,16
-	cmp rdi,endcmds
+	cmp rsi,endcmds
 	jge .done
+	push rsi
+	push rdi
+	call getregs
+	pop rdi
+	pop rsi
 	jmp .loop
 .docmd
-	mov rax,[rsi + 8]
-	call getregs
+	;mov rax,[rsi + 7]
+	;call rax
 .done
 ret
 	.prmpt db '?>',0
@@ -30,4 +35,4 @@ cmdstrings:
 help:
 	db 'help',0,0,0,0
 	dq helpcmd
-endcmds:
+endcmds: db '****'
