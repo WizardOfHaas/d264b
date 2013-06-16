@@ -252,6 +252,13 @@ input:		;rdi - string to typietype into
 	call newline
 ret
 
+getinput:
+	push rdi
+	call sprint
+	pop rdi
+	call input
+ret
+
 compare:	;Compares string in rsi to rdi. stc if equal
 	push rdi
 	push rsi

@@ -12,11 +12,6 @@ shell:
 	add rsi,16
 	cmp rsi,endcmds
 	jge .done
-	push rsi
-	push rdi
-	call getregs
-	pop rdi
-	pop rsi
 	jmp .loop
 .docmd
 	mov rax,[rsi + 8]
@@ -25,14 +20,27 @@ shell:
 ret
 	.prmpt db '?>',0
 
+dumpcmd:
+	mov rsi,.prmpt
+	mov rdi,buffer
+	call getinput
+ret
+	.prmpt db 'adrrs?>',0
+
 helpcmd:
 	mov rsi,.hlp0
 	call sprint
 ret
-	.hlp0 db 'help - this',0
+	.hlp0 db 'help - this',13,'regs - dump registers',13,'dump - ram dump',13,0
 
 cmdstrings:
 help:
 	db 'help',0,0,0,0
 	dq helpcmd
+regs:
+	db 'regs',0,0,0,0
+	dq getregs
+dumpchar:
+	db 'dump',0,0,0,0
+	dq dumpcmd
 endcmds: db '****'
