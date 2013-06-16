@@ -311,6 +311,28 @@ compare:	;Compares string in rsi to rdi. stc if equal
 	pop rdi
 ret
 
+getrnd:			;OUT - rax, rnd number
+	xor rax,rax
+	call getrnd16
+	shl rax,16
+	call getrnd16
+	shl rax,16
+	call getrnd16
+	call iprint
+	call newline
+ret
+
+getrnd16:
+	cli			;OUT - ax, random number
+	mov al,00000000b
+	out 0x43,al
+	in al,0x40	
+	mov ah,al
+	in al,40h
+	xor al,ah
+	sti
+ret
+
 key db 0
 keylayoutlower:
 	db 0x00, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0x0e, 0, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0x1c, 0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',';', 0, '`', 0, 0, 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, 0, 0, ' ', 0
