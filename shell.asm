@@ -24,8 +24,12 @@ dumpcmd:
 	mov rsi,.prmpt
 	mov rdi,buffer
 	call getinput
+	mov rsi,buffer
+	call toint
+	mov rsi,rax
+	call dump
 ret
-	.prmpt db 'adrrs?>',0
+	.prmpt db 'adress?>',0
 
 helpcmd:
 	mov rsi,.hlp0

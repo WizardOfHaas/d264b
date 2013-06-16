@@ -183,6 +183,33 @@ tostring:		;RAX - int, RDI - string out
 	pop rax
 ret
 
+toint:		;RSI - string, RAX - int out!
+	push rsi
+	push rdx
+	push rcx
+	push rbx
+
+	xor eax, eax			; initialize accumulator
+	mov rbx, 10			; decimal-system's radix
+.os_string_to_int_next_digit:
+	mov cl, [rsi]			; fetch next character
+	cmp cl, '0'			; char preceeds '0'?
+	jb .os_string_to_int_invalid	; yes, not a numeral
+	cmp cl, '9'			; char follows '9'?
+	ja .os_string_to_int_invalid	; yes, not a numeral
+	mul rbx				; ten times prior sum
+	and rcx, 0x0F			; convert char to int
+	add rax, rcx			; add to prior total
+	inc rsi				; advance source index
+	jmp .os_string_to_int_next_digit	; and check another char
+	
+.os_string_to_int_invalid:
+	pop rbx
+	pop rcx
+	pop rdx
+	pop rsi
+	ret
+
 newline:
 	mov byte[xpos],0
 	add byte[ypos],1
