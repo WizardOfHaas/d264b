@@ -7,7 +7,7 @@ start:
 	mov rsi,splash
 	call sprint
 	call getregs
-	
+
 	call initmm
 end:
 	call shell
