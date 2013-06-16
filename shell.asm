@@ -6,7 +6,7 @@ shell:
 
 	mov rsi,cmdstrings
 	mov rdi,buffer
-.loop		;;;;;;;AROUND HERE! ITS FUCKED UP!!!
+.loop
 	call compare
 	jc .docmd
 	add rsi,16
@@ -19,8 +19,8 @@ shell:
 	pop rsi
 	jmp .loop
 .docmd
-	;mov rax,[rsi + 7]
-	;call rax
+	mov rax,[rsi + 8]
+	call rax
 .done
 ret
 	.prmpt db '?>',0

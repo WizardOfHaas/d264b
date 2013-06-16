@@ -107,7 +107,7 @@ getregs:
 	mov r11,rdx
 	mov r12,rsi
 	mov r13,rdi
-	mov byte[.reg + 2],'a'
+	mov word[.reg + 2],'ax'
 	mov rsi,.reg
 	call sprint
 	mov rax,r8
