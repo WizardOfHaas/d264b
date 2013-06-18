@@ -8,18 +8,31 @@ start:
 	call sprint
 	call getregs
 
+	mov eax,0
+	cpuid
+	mov [vinfo],ebx
+	mov [vinfo + 4],edx
+	mov [vinfo + 8],ecx
+	mov rsi,vinfo
+	call sprint
+	call newline
+
 	call initmm
+
+	call initemr
 end:
 	call shell
 jmp end
 
 db 'For Jamie'
 buffer times 256 db 0
+vinfo times 16 db 0
 splash db 'd264b - Built with Dreckig OS Technology',13,'copyright 2013-2015 Sean Haas',13,0
 xpos db 0
 ypos db 0
 
 %include 'memc.asm'
+%include 'emr.asm'
 %include 'shell.asm'
 
 clearscreen:
