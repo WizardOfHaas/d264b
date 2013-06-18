@@ -40,13 +40,13 @@ malocbig:		;Out - rAX,start of 1kb page,rBX,page id
 	mul rbx
 	add rax,void
 .done
-	push rax
-	mov rsi,rax
-	mov rdi,rax
-	add rdi,1024
-	mov al,'0'
-	call fillmem
-	pop rax
+	;push rax
+	;mov rsi,rax
+	;mov rdi,rax
+	;add rdi,1024
+	;mov al,'0'
+	;call fillmem
+	;pop rax
 	pop rsi
 ret
 
