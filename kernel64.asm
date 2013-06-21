@@ -71,14 +71,14 @@ inccurs:
 	jg .scroll
 
 	cmp ah,80
-	jge .incx
+	jge .incy
 	add byte[xpos],1
 	jmp .done
 .scroll
 	call scrollup
 	sub byte[ypos],1
 	jmp .done
-.incx
+.incy
 	mov byte[xpos],0
 	cmp byte[ypos],24
 	jg .scroll
