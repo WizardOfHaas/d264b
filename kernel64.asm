@@ -68,25 +68,26 @@ inccurs:
 	mov al,byte[ypos]
 	
 	cmp al,24
-	jge .scroll
+	jg .scroll
 
 	cmp ah,80
-	jge .incy
+	jge .incx
 	add byte[xpos],1
 	jmp .done
 .scroll
 	call scrollup
+	sub byte[ypos],1
 	jmp .done
-.incy
+.incx
 	mov byte[xpos],0
 	cmp byte[ypos],24
-	jge .scroll
+	jg .scroll
 	add byte[ypos],1
 .done
 ret
 
 scrollup:
-	mov rax,2048
+	mov rax,4000
 	mov rsi,0xB80A0
 	mov rdi,0xB8000
 	call movemem

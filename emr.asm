@@ -12,6 +12,11 @@ initemr:
 	add rdi,1024
 	call fillmem
 
+	mov rsi,[emradrs]
+	mov byte[rsi],1
+	mov byte[rsi + 5],1
+	mov byte[rsi + 85],1
+
 	call dumpemr
 .done
 ret
@@ -49,12 +54,9 @@ getneighbors:		;rax - cell id, rdi - pointer to neighbor list
 	jmp .next
 .row0
 	add rax,[emradrs]
-	mov bl,byte[rax - 81]
-	mov byte[.buff],bl
-	mov bl,byte[rax - 80]
-	mov byte[.buff + 1],bl
-	mov bl,byte[rax - 79]
-	mov byte[.buff + 2],bl
+	mov byte[.buff],0
+	mov byte[.buff + 1],0
+	mov byte[.buff + 2],0
 .next
 	mov bl,byte[rax - 1]
 	mov byte[.buff + 3],bl
