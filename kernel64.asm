@@ -168,33 +168,33 @@ ret
 	.tmp times 32 db 0
 
 tostring:		;RAX - int, RDI - string out
-	push rax		; save the caller's registers
-	push rbx
-	push rcx
 	push rdx
-	push rdi
+	push rcx
+	push rbx
+	push rax
 
-	mov rbx,10	 ; base of the decimal system
-	xor rcx,rcx	; number of digits generated
-.nxdiv
-	xor rdx,rdx	; RAX extended to (RDX,RAX)
-	div rbx		; divide by the number-base
-	push rdx	; save remainder on the stack
-	inc rcx		; and count this remainder
-	cmp rax,0	; was the quotient zero?
-	jne .nxdiv	; no, do another division
-.nxdgt
-	pop rdx		; else pop recent remainder
-	add dl,'0'	; and convert to a numeral
-	mov [rdi],dl	; store to memory-buffer
-	inc rdi	; and advance buffer-pointer
-	loop .nxdgt	; again for other remainders
+	mov rbx, 10					; base of the decimal system
+	xor ecx, ecx					; number of digits generated
+.os_int_to_string_next_divide
+	xor edx, edx					; RAX extended to (RDX,RAX)
+	div rbx						; divide by the number-base
+	push rdx					; save remainder on the stack
+	inc rcx						; and count this remainder
+	cmp rax, 0					; was the quotient zero?
+	jne .os_int_to_string_next_divide		; no, do another division
 
-	pop rdi	; recover saved registers
-	pop rdx
-	pop rcx
-	pop rbx
+.os_int_to_string_next_digit
+	pop rax						; else pop recent remainder
+	add al, '0'					; and convert to a numeral
+	stosb						; store to memory-buffer
+	loop .os_int_to_string_next_digit		; again for other remainders
+	xor al, al
+	stosb						; Store the null terminator at the end of the string
+
 	pop rax
+	pop rbx
+	pop rcx
+	pop rdx
 ret
 
 toint:		;RSI - string, RAX - int out!
