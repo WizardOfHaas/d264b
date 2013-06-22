@@ -1,29 +1,36 @@
 emrpage dq 0
 emradrs dq 0
+ruletab dq 0
 
 initemr:
 	call malocbig
 	mov [emrpage],rbx
 	mov [emradrs],rax
-	
+
 	xor rax,rax
 	mov rsi,[emradrs]
 	mov rdi,rsi
 	add rdi,1024
 	call fillmem
 
+	mov rax,.tab
+	mov [ruletab],rax
+
 	mov rsi,[emradrs]
-	mov byte[rsi + 5],1
-	mov byte[rsi + 20],1
+	mov byte[rsi],0
+	mov byte[rsi + 21],1
 	mov byte[rsi + 22],1
+	mov byte[rsi + 37],1
 
 	call dumpemr
 .loop
+	call getkey
 	call getkey
 	call stepemr
 	jmp .loop
 .done
 ret
+	.tab db 0,1,1,1,0,0,0,0,0,0
 
 dumpemr:
 	mov byte[xpos],0
@@ -70,25 +77,19 @@ stepemr:
 	push rdx
 	call sumneighbors
 	pop rdx
-	cmp rbx,3
-	je .live
-	cmp rbx,1
-	jle .die
-	.allok
+
+	mov rdi,[emradrs]
+	add rdi,rdx
+	mov rsi,[ruletab]
+	add rsi,rbx
+	mov cl,byte[rsi]
+	mov byte[rdi],cl
+	
+
 	cmp rdx,256
 	jge .done
 	inc rdx
 	jmp .loop
-.live
-	mov rdi,[.adrs]
-	add rdi,rdx
-	mov byte[rdi],1
-	jmp .allok
-.die
-	mov rdi,[.adrs]
-	add rdi,rdx
-	mov byte[rdi],0
-	jmp .allok
 .done
 	mov rax,1024
 	mov rsi,[.adrs]
