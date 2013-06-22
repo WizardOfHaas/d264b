@@ -115,6 +115,10 @@ cprint:
 ret
 
 getregs:
+	push rax
+	push rbx
+	push rcx
+	push rdx
 	mov r8,rax
 	mov r9,rbx
 	mov r10,rcx
@@ -152,6 +156,10 @@ getregs:
 	mov rax,r13
 	call iprint
 	call newline
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
 ret
 	.reg db ' rax:',0
 

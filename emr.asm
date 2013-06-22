@@ -14,16 +14,18 @@ initemr:
 
 	mov rsi,[emradrs]
 	mov byte[rsi + 5],1
-	mov byte[rsi + 21],1
+	mov byte[rsi + 20],1
 	mov byte[rsi + 22],1
 
 	call dumpemr
-
+	call getkey
 	call stepemr
 .done
 ret
 
 dumpemr:
+	mov byte[xpos],0
+	mov byte[ypos],5
 	mov rsi,[emradrs]
 	xor rbx,rbx
 	xor rcx,rcx
@@ -51,11 +53,33 @@ dumpemr:
 ret
 
 stepemr:
-	mov rax,21
+	xor rdx,rdx
+.loop
+	mov rax,rdx
+	push rdx
 	call sumneighbors
-	mov rax,rbx
-	call iprint
-	call newline
+	pop rdx
+	cmp rbx,3
+	je .live
+	cmp rbx,1
+	jle .die
+	.allok
+	cmp rdx,256
+	jge .done
+	inc rdx
+	jmp .loop
+.live
+	mov rdi,[emradrs]
+	add rdi,rdx
+	mov byte[rdi],1
+	jmp .allok
+.die
+	mov rdi,[emradrs]
+	add rdi,rdx
+	mov byte[rdi],0
+	jmp .allok
+.done
+	call dumpemr
 ret
 	.tmp times 32 db 0
 
