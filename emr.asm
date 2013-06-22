@@ -18,8 +18,10 @@ initemr:
 	mov byte[rsi + 22],1
 
 	call dumpemr
+.loop
 	call getkey
 	call stepemr
+	jmp .loop
 .done
 ret
 
@@ -53,6 +55,15 @@ dumpemr:
 ret
 
 stepemr:
+	call malocbig
+	mov [.page],rbx
+	mov [.adrs],rax
+
+	mov rax,1024
+	mov rdi,[.adrs]
+	mov rsi,[emradrs]
+	call movemem
+
 	xor rdx,rdx
 .loop
 	mov rax,rdx
@@ -69,19 +80,28 @@ stepemr:
 	inc rdx
 	jmp .loop
 .live
-	mov rdi,[emradrs]
+	mov rdi,[.adrs]
 	add rdi,rdx
 	mov byte[rdi],1
 	jmp .allok
 .die
-	mov rdi,[emradrs]
+	mov rdi,[.adrs]
 	add rdi,rdx
 	mov byte[rdi],0
 	jmp .allok
 .done
+	mov rax,1024
+	mov rsi,[.adrs]
+	mov rdi,[emradrs]
+	call movemem
+
 	call dumpemr
+	mov rax,[.page]
+	call freebig
 ret
 	.tmp times 32 db 0
+	.page dq 0
+	.adrs dq 0
 
 sumneighbors:		;rax - cell id, rbx - sum of neighbors values
 	call getneighbors
