@@ -84,18 +84,16 @@ stepemr:
 
 	xor rax,rax
 .loop
-	push rax
-	call sumneighbors
-	pop rax
-
 	mov rdi,[emradrs]
 	add rdi,rax
 	cmp byte[rdi],0
 	je .dead
 .live
+	call sumneighbors
 	mov rsi,[ruletab]
 	add rsi,rbx
 	add rsi,9
+	movzx rcx,byte[rsi]
 	call getregs
 
 	mov rdi,[.adrs]
@@ -104,6 +102,7 @@ stepemr:
 	mov byte[rdi],cl
 	jmp .ok
 .dead
+	call sumneighbors
 	mov rsi,[ruletab]
 	add rsi,rbx
 
@@ -135,6 +134,7 @@ ret
 	.gen dq 0
 
 sumneighbors:		;rax - cell id, rbx - sum of neighbors values
+	push rax
 	call getneighbors
 	xor rbx,rbx
 	movzx rcx,byte[rdi]
@@ -153,6 +153,7 @@ sumneighbors:		;rax - cell id, rbx - sum of neighbors values
 	add rbx,rcx
 	movzx rcx,byte[rdi + 7]
 	add rbx,rcx
+	pop rax
 ret
 
 getneighbors:		;rax - cell id, rdi - pointer to neighbor list
