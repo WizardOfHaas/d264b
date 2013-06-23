@@ -1,13 +1,16 @@
 emrpage dq 0
 emradrs dq 0
-ruletab dq 0
+ruletab dq gol
 
 gol 	db 0,0,0,1,0,0,0,0,0
 	db 0,0,1,1,0,0,0,0,0
+
 lfod	db 0,0,1,0,0,0,0,0,0
 	db 1,0,0,0,0,0,0,0,0
+
 lwod 	db 0,0,0,1,0,0,0,0,0
 	db 1,1,1,1,1,1,1,1,1
+
 maze	db 0,0,0,1,0,0,0,0,0
 	db 0,1,1,1,1,1,0,0,0
 
@@ -22,9 +25,6 @@ initemr:
 	mov rdi,rsi
 	add rdi,1024
 	call fillmem
-
-	mov rax,gol
-	mov [ruletab],rax
 
 	mov rsi,[emradrs]
 	mov byte[rsi],0
@@ -91,22 +91,27 @@ stepemr:
 	mov rdi,[emradrs]
 	add rdi,rax
 	cmp byte[rdi],0
-	jne .live
-.dead
-	mov rsi,[ruletab]
-	call getregs
-	add rsi,rbx
-	call getregs
-	mov cl,byte[rsi]
-	mov byte[rdi],cl
-	jmp .allok
+	je .dead
 .live
 	mov rsi,[ruletab]
 	add rsi,rbx
 	add rsi,9
+	call getregs
+
+	mov rdi,[.adrs]
+	add rdi,rax
 	mov cl,byte[rsi]
 	mov byte[rdi],cl
-.allok
+	jmp .ok
+.dead
+	mov rsi,[ruletab]
+	add rsi,rbx
+
+	mov rdi,[.adrs]
+	add rdi,rax
+	mov cl,byte[rsi]
+	mov byte[rdi],cl
+.ok
 	cmp rax,256
 	jge .done
 	inc rax
