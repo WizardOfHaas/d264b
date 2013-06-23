@@ -70,7 +70,7 @@ movemem:	;rsi - source, rdi - dest, rax - size
 	inc rbx
 	jmp .loop
 .done
-	pop rdi
+	pop rsi
 	pop rdi
 	pop rax
 ret

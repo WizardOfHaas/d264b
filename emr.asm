@@ -2,6 +2,16 @@ emrpage dq 0
 emradrs dq 0
 ruletab dq 0
 
+gol 	db 0,0,0,1,0,0,0,0,0
+	db 0,0,1,1,0,0,0,0,0
+lfod	db 0,0,1,0,0,0,0,0,0
+	db 1,0,0,0,0,0,0,0,0
+lwod 	db 0,0,0,1,0,0,0,0,0
+	db 1,1,1,1,1,1,1,1,1
+maze	db 0,0,0,1,0,0,0,0,0
+	db 0,1,1,1,1,1,0,0,0
+
+
 initemr:
 	call malocbig
 	mov [emrpage],rbx
@@ -13,14 +23,14 @@ initemr:
 	add rdi,1024
 	call fillmem
 
-	mov rax,.tab
+	mov rax,gol
 	mov [ruletab],rax
 
 	mov rsi,[emradrs]
 	mov byte[rsi],0
-	mov byte[rsi + 21],1
 	mov byte[rsi + 22],1
-	mov byte[rsi + 37],1
+	mov byte[rsi + 38],1
+	mov byte[rsi + 54],1
 
 	call dumpemr
 .loop
@@ -30,7 +40,6 @@ initemr:
 	jmp .loop
 .done
 ret
-	.tab db 0,1,1,1,0,0,0,0,0,0
 
 dumpemr:
 	mov byte[xpos],0
@@ -40,7 +49,7 @@ dumpemr:
 	xor rcx,rcx
 .loop
 	mov al,byte[rsi]
-	add al,'0'
+	add al,7
 	push rbx
 	push rcx
 	call cprint
@@ -62,6 +71,8 @@ dumpemr:
 ret
 
 stepemr:
+	add qword[.gen],1
+
 	call malocbig
 	mov [.page],rbx
 	mov [.adrs],rax
@@ -71,24 +82,32 @@ stepemr:
 	mov rsi,[emradrs]
 	call movemem
 
-	xor rdx,rdx
+	xor rax,rax
 .loop
-	mov rax,rdx
-	push rdx
+	push rax
 	call sumneighbors
-	pop rdx
+	pop rax
 
 	mov rdi,[emradrs]
-	add rdi,rdx
+	add rdi,rax
+	cmp byte[rdi],0
+	jne .live
+.dead
 	mov rsi,[ruletab]
 	add rsi,rbx
 	mov cl,byte[rsi]
 	mov byte[rdi],cl
-	
-
-	cmp rdx,256
+	jmp .allok
+.live
+	mov rsi,[ruletab]
+	add rsi,rbx
+	add rsi,9
+	mov cl,byte[rsi]
+	mov byte[rdi],cl
+.allok
+	cmp rax,256
 	jge .done
-	inc rdx
+	inc rax
 	jmp .loop
 .done
 	mov rax,1024
@@ -96,13 +115,17 @@ stepemr:
 	mov rdi,[emradrs]
 	call movemem
 
-	call dumpemr
 	mov rax,[.page]
 	call freebig
+
+	call dumpemr
+	mov rax,[.gen]
+	call iprint
 ret
 	.tmp times 32 db 0
 	.page dq 0
 	.adrs dq 0
+	.gen dq 0
 
 sumneighbors:		;rax - cell id, rbx - sum of neighbors values
 	call getneighbors
@@ -146,8 +169,7 @@ getneighbors:		;rax - cell id, rdi - pointer to neighbor list
 	mov byte[.buff + 3],bl
 	mov bl,byte[rax + 1]
 	mov byte[.buff + 4],bl
-	cmp rax,240
-	jg .lastrow
+
 	mov bl,byte[rax + 15]
 	mov byte[.buff + 5],bl
 	mov bl, byte[rax + 16]
@@ -155,10 +177,6 @@ getneighbors:		;rax - cell id, rdi - pointer to neighbor list
 	mov bl,byte[rax + 17]
 	mov byte[.buff + 7],bl
 	jmp .done
-.lastrow
-	mov byte[.buff + 5],0
-	mov byte[.buff + 6],0
-	mov byte[.buff + 7],0
 .done
 	mov rdi,.buff
 ret
