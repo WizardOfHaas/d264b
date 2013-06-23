@@ -94,7 +94,9 @@ stepemr:
 	jne .live
 .dead
 	mov rsi,[ruletab]
+	call getregs
 	add rsi,rbx
+	call getregs
 	mov cl,byte[rsi]
 	mov byte[rdi],cl
 	jmp .allok
