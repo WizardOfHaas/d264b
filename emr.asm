@@ -83,6 +83,7 @@ stepemr:
 	call movemem
 
 	xor rax,rax
+	xor rcx,rcx
 .loop
 	mov rdi,[emradrs]
 	add rdi,rax
@@ -93,22 +94,19 @@ stepemr:
 	mov rsi,[ruletab]
 	add rsi,rbx
 	add rsi,9
-	movzx rcx,byte[rsi]
-	call getregs
-
+	mov cl,byte[rsi]
 	mov rdi,[.adrs]
 	add rdi,rax
-	mov cl,byte[rsi]
+	call getregs
 	mov byte[rdi],cl
 	jmp .ok
 .dead
 	call sumneighbors
 	mov rsi,[ruletab]
 	add rsi,rbx
-
+	mov cl,byte[rsi]
 	mov rdi,[.adrs]
 	add rdi,rax
-	mov cl,byte[rsi]
 	mov byte[rdi],cl
 .ok
 	cmp rax,256
