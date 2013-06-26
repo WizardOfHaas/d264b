@@ -1,3 +1,5 @@
+emrbuff times 1024 db 0
+
 emrpage dq 0
 emradrs dq 0
 ruletab dq gol
@@ -95,19 +97,14 @@ stepemr:
 	add rsi,rbx
 	add rsi,9
 	mov cl,byte[rsi]
-	mov rdi,[.adrs]
-	add rdi,rax
-	call getregs
-	mov byte[rdi],cl
+	mov byte[emrbuff + rax],cl		;;;IN HERE!!!!
 	jmp .ok
 .dead
 	call sumneighbors
 	mov rsi,[ruletab]
 	add rsi,rbx
 	mov cl,byte[rsi]
-	mov rdi,[.adrs]
-	add rdi,rax
-	mov byte[rdi],cl
+	mov byte[emrbuff + rax],cl
 .ok
 	cmp rax,256
 	jge .done
@@ -115,7 +112,7 @@ stepemr:
 	jmp .loop
 .done
 	mov rax,1024
-	mov rsi,[.adrs]
+	mov rsi,emrbuff
 	mov rdi,[emradrs]
 	call movemem
 
