@@ -22,6 +22,7 @@ initemr:
 	mov [emrpage],rbx
 	mov [emradrs],rax
 
+startemr:
 	xor rax,rax
 	mov rsi,[emradrs]
 	mov rdi,rsi
@@ -33,15 +34,53 @@ initemr:
 	mov byte[rsi + 22],1
 	mov byte[rsi + 38],1
 	mov byte[rsi + 54],1
+	mov byte[rsi + 50],1
+	mov byte[rsi + 51],1
+	mov byte[rsi + 66],1
+
+	mov di,.tmprule
+	call inputrule
+	mov rax,.tmprule
+	mov [ruletab],rax
 
 	call dumpemr
 .loop
 	call getkey
+	;cmp al,0x1
+	;je .rule
 	call getkey
 	call stepemr
 	jmp .loop
+.rule
+	call inputrule
+	jmp startemr
 .done
 ret
+	.tmprule times 32 db 0
+
+inputrule:		;rdi - location of rule table
+	push rdi
+	mov rdi,buffer
+	mov rsi,.p0
+	call getinput
+	mov rdi,buffer+9
+	mov rsi,.p1
+	call getinput
+	xor rax,rax
+.loop
+	cmp rax,20
+	jge .done
+	sub byte[buffer + rax],'0'
+	add rax,1
+	jmp .loop
+.done
+	pop rdi
+	mov rsi,buffer
+	mov rax,20
+	call movemem
+ret
+	.p0 db 'Spawn?>',0
+	.p1 db 'Survive?>',0
 
 dumpemr:
 	mov byte[xpos],0
