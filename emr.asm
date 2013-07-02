@@ -21,8 +21,13 @@ initemr:
 	call malocbig
 	mov [emrpage],rbx
 	mov [emradrs],rax
+ret
 
 startemr:
+	call clearscreen
+
+	mov byte[stepemr.gen],0
+
 	xor rax,rax
 	mov rsi,[emradrs]
 	mov rdi,rsi
@@ -46,13 +51,12 @@ startemr:
 	call dumpemr
 .loop
 	call getkey
-	;cmp al,0x1
-	;je .rule
+	cmp al,0x1
+	je .re
 	call getkey
 	call stepemr
 	jmp .loop
-.rule
-	call inputrule
+.re
 	jmp startemr
 .done
 ret
@@ -63,7 +67,7 @@ inputrule:		;rdi - location of rule table
 	mov rdi,buffer
 	mov rsi,.p0
 	call getinput
-	mov rdi,buffer+9
+	mov rdi,buffer + 9
 	mov rsi,.p1
 	call getinput
 	xor rax,rax
@@ -79,8 +83,8 @@ inputrule:		;rdi - location of rule table
 	mov rax,20
 	call movemem
 ret
-	.p0 db 'Spawn?>',0
-	.p1 db 'Survive?>',0
+	.p0 db 'B?>',0
+	.p1 db 'S?>',0
 
 dumpemr:
 	mov byte[xpos],0

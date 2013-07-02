@@ -47,6 +47,7 @@ xpos db 0
 ypos db 0
 
 %include 'memc.asm'
+%include 'dlisp.asm'
 %include 'emr.asm'
 %include 'shell.asm'
 
@@ -316,6 +317,7 @@ input:		;rdi - string to typietype into
 	dec byte[xpos]
 	jmp .loop
 .done
+	call getkey
 	mov byte[rdi],0
 	call newline
 ret
