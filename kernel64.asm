@@ -33,10 +33,13 @@ start:
 	call newline
 
 	call initmm
-
+	call inittask
 	call initemr
+
+	mov rax,shell
+	call schedule
 end:
-	call shell
+	call yield
 jmp end
 
 db 'For Jamie'
@@ -47,6 +50,7 @@ xpos db 0
 ypos db 0
 
 %include 'memc.asm'
+%include 'task.asm'
 %include 'dlisp.asm'
 %include 'emr.asm'
 %include 'shell.asm'

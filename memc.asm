@@ -10,7 +10,7 @@ initmm:
 	mov rsi,.ok
 	call sprint
 ret
-	.msg db 'Loading Memory Manager...',0
+	.msg db 'Initializing Memory Manager...',0
 	.ok db '[ok]',13,0
 
 fillmem:	;rsi - start,rdi - end,al - value
