@@ -27,10 +27,16 @@ eval:				;rsi - tokonified dlisp to eval
 	
 	jmp .done
 .sum
-	mov rax,[rsi + 2]
-	mov rbx,[rsi + 4]
+	add rsi,2
+	mov rsi,[rsi]
+	call toint
+	mov rbx,rax
 
+	add rsi,2
+	mov rsi,[rsi]
+	call toint
 	add rax,rbx
+	
 	jmp .done
 .dif
 	.done
