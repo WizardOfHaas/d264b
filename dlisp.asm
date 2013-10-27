@@ -6,7 +6,7 @@ rundlisp:			;rsi - string to interpret
 	call malocbig
 	mov [dlisppage],rbx
 	mov [dlispadrs],rax
-	mov qword[dlisptemp],0
+	mov qword[dlisptemp],rax
 
 	call tokenify
 	mov [.temp],rsi
@@ -21,7 +21,8 @@ rundlisp:			;rsi - string to interpret
 	call getstatement
 
 	call eval
-	call getregs
+	call iprint
+	call newline
 
 	mov rax,[dlisppage]
 	call freebig
@@ -29,11 +30,11 @@ rundlisp:			;rsi - string to interpret
 	.temp dq 0
 
 eval:				;rsi - tokonified dlisp to eval
+	push rsi
 	cmp byte[rsi],'0'
 	jge .char
 	cmp byte[rsi],'('
 	je .parse
-
 	
 	cmp byte[rsi],'+'
 	je .sum
@@ -45,22 +46,35 @@ eval:				;rsi - tokonified dlisp to eval
 	call getstatement
 	call eval
 	jmp .done
+	
 .char
 	cmp byte[rsi],'9'
 	jle .num
 	jmp .done
+	
 .num
 	call toint
 	jmp .done
+	
 .sum
 	add rsi,2
 	call eval
 	mov rbx,rax
 	
 	.sumloop
-	add rsi,2
 	cmp byte[rsi],254
 	je .sumdone
+	cmp byte[rsi],'('
+	je .sumstatement
+
+	call strlength
+	add rsi,rax
+	inc rsi
+	.sumstatedone
+
+	cmp byte[rsi],254
+	je .sumdone
+
 	push rbx
 	call eval
 	pop rbx
@@ -69,8 +83,36 @@ eval:				;rsi - tokonified dlisp to eval
 .sumdone
 	mov rax,rbx
 	jmp .done
+.sumstatement
+	push rax
+	call statementlength
+	add rsi,rax
+	inc rsi
+	pop rax
+	jmp .sumstatedone
+	
 .dif
+	add rsi,2
+	call eval
+	mov rbx,rax
+
+	call dlstrlength
+	add rsi,rax
+	inc rsi
+	
+	call eval
+	sub rbx,rax
+	mov rax,rbx
+	jmp .done
 .done
+	pop rsi
+	push rsi
+	push rax
+	mov al,byte[rsi]
+	call cprint
+	pop rax
+	pop rsi
+	call getregs
 	ret
 
 getstatement:			;rsi - tokonified source to get statement from, statement
@@ -223,6 +265,35 @@ dlstrlength:			;rsi - string to count length of
 	je .done
 	cmp byte[rsi],'0'
 	jl .done
+
+	inc rax
+	inc rsi
+	jmp .loop
+.done
+	pop rsi
+	ret
+
+
+strlength:			;rsi - string to count length of
+	push rsi
+	xor rax,rax
+.loop
+	cmp byte[rsi],0
+	je .done
+
+	inc rax
+	inc rsi
+	jmp .loop
+.done
+	pop rsi
+	ret
+
+statementlength:			;rsi - string to count length of
+	push rsi
+	xor rax,rax
+.loop
+	cmp byte[rsi],')'
+	je .done
 
 	inc rax
 	inc rsi

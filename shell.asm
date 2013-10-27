@@ -4,6 +4,9 @@ shell:
 	mov rdi,buffer
 	call input
 
+	cmp byte[buffer],'('
+	je .dlisp
+
 	mov rsi,cmdstrings
 	mov rdi,buffer
 .loop
@@ -13,6 +16,10 @@ shell:
 	cmp rsi,endcmds
 	jge .done
 	jmp .loop
+.dlisp
+	mov rsi,buffer
+	call rundlisp
+	jmp .done
 .docmd
 	mov rax,[rsi + 8]
 	call schedule
@@ -62,7 +69,7 @@ helpcmd:
 	mov rsi,.hlp0
 	call sprint
 ret
-	.hlp0 db 'help - this',13,'regs - dump registers',13,'dump - ram dump',13,0
+	.hlp0 db 'help - this',13,'regs - dump registers',13,'dump - ram dump',13,'dlisp - INVOKE THE LISP!',13,0
 
 dlispcmd:
 	mov rdi,buffer
