@@ -1,4 +1,13 @@
+	dlisppage dq 0
+	dlispadrs dq 0
+	dlisptemp dq 0
+
 rundlisp:			;rsi - string to interpret
+	call malocbig
+	mov [dlisppage],rbx
+	mov [dlispadrs],rax
+	mov qword[dlisptemp],0
+
 	call tokenify
 	mov [.temp],rsi
 	push rsi
@@ -10,36 +19,58 @@ rundlisp:			;rsi - string to interpret
 	call newline
 	mov rsi,[.temp]
 	call getstatement
-	push rsi
-	call dump
-	pop rsi
 
 	call eval
 	call getregs
+
+	mov rax,[dlisppage]
+	call freebig
 	ret
 	.temp dq 0
 
 eval:				;rsi - tokonified dlisp to eval
+	cmp byte[rsi],'0'
+	jge .char
+	cmp byte[rsi],'('
+	je .parse
+
+	
 	cmp byte[rsi],'+'
 	je .sum
 	cmp byte[rsi],'-'
 	je .dif
 	
 	jmp .done
+.parse
+	call getstatement
+	call eval
+	jmp .done
+.char
+	cmp byte[rsi],'9'
+	jle .num
+	jmp .done
+.num
+	call toint
+	jmp .done
 .sum
 	add rsi,2
-	mov rsi,[rsi]
-	call toint
+	call eval
 	mov rbx,rax
-
-	add rsi,2
-	mov rsi,[rsi]
-	call toint
-	add rax,rbx
 	
+	.sumloop
+	add rsi,2
+	cmp byte[rsi],254
+	je .sumdone
+	push rbx
+	call eval
+	pop rbx
+	add rbx,rax
+	jmp .sumloop
+.sumdone
+	mov rax,rbx
 	jmp .done
 .dif
-	.done
+.done
 	ret
 
 getstatement:			;rsi - tokonified source to get statement from, statement
@@ -87,12 +118,17 @@ getstatement:			;rsi - tokonified source to get statement from, statement
 	jne .more
 	
 	mov rsi,r8
-	mov rdi,.temp
+	mov rdi,[dlisptemp]
 	call movemem
-	mov rsi,.temp
+	mov rsi,[dlisptemp]
 	mov byte[rsi + rax],254
+	add rax,3
+	add [dlisptemp], rax
+	
+	push rsi
+	call dump
+	pop rsi
 	ret
-	.temp times 64 db 0
 
 tokenify:			;rsi - string to tokenify
 	cmp qword[.page],0
