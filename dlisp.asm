@@ -3,6 +3,10 @@
 	dlisptemp dq 0
 
 rundlisp:			;rsi - string to interpret
+	call validatedlisp
+	cmp rax,0
+	jne .err
+	
 	call malocbig
 	mov [dlisppage],rbx
 	mov [dlispadrs],rax
@@ -10,24 +14,24 @@ rundlisp:			;rsi - string to interpret
 
 	call tokenify
 	mov [.temp],rsi
-	push rsi
-	call dump
-	pop rsi
-	add rsi,16
-	call dump
-
-	call newline
+	
 	mov rsi,[.temp]
 	call getstatement
 
 	call eval
 	call iprint
 	call newline
-
+	
 	mov rax,[dlisppage]
 	call freebig
+	jmp .done
+.err
+	mov rsi,.errmsg
+	call sprint
+.done
 	ret
 	.temp dq 0
+	.errmsg db 'You done fucke up!',13,0
 
 eval:				;rsi - tokonified dlisp to eval
 	push rsi
@@ -87,7 +91,7 @@ eval:				;rsi - tokonified dlisp to eval
 	push rax
 	call statementlength
 	add rsi,rax
-	inc rsi
+	add rsi,2
 	pop rax
 	jmp .sumstatedone
 	
@@ -106,13 +110,6 @@ eval:				;rsi - tokonified dlisp to eval
 	jmp .done
 .done
 	pop rsi
-	push rsi
-	push rax
-	mov al,byte[rsi]
-	call cprint
-	pop rax
-	pop rsi
-	call getregs
 	ret
 
 getstatement:			;rsi - tokonified source to get statement from, statement
@@ -166,10 +163,6 @@ getstatement:			;rsi - tokonified source to get statement from, statement
 	mov byte[rsi + rax],254
 	add rax,3
 	add [dlisptemp], rax
-	
-	push rsi
-	call dump
-	pop rsi
 	ret
 
 tokenify:			;rsi - string to tokenify
@@ -301,3 +294,30 @@ statementlength:			;rsi - string to count length of
 .done
 	pop rsi
 	ret
+
+validatedlisp:				;rsi - string to validate
+	push rsi
+	xor rax,rax
+.loop
+	cmp byte[rsi],'('
+	je .open
+	cmp byte[rsi],')'
+	je .close
+
+	cmp byte[rsi],0
+	je .done
+	
+	inc rsi
+	jmp .loop
+.open
+	inc rax
+	inc rsi
+	jmp .loop
+.close
+	dec rax
+	inc rsi
+	jmp .loop
+.done
+	pop rsi
+	ret
+

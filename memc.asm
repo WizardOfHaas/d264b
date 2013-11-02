@@ -93,6 +93,11 @@ ret
 
 dump:		;rsi - address
 	push rsi
+	push rdi
+	push rax
+	push rbx
+	
+	push rsi
 	mov rax,rsi
 	call iprint
 	mov al,':'
@@ -139,4 +144,9 @@ dump:		;rsi - address
 	jmp .cloop
 .done
 	call newline
+
+	pop rbx
+	pop rax
+	pop rdi
+	pop rsi
 ret
