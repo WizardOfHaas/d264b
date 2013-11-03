@@ -99,17 +99,41 @@ eval:				;rsi - tokonified dlisp to eval
 	add rsi,2
 	call eval
 	mov rbx,rax
-
+	push rbx
+	
+	cmp byte[rsi],'('
+	je .difstatement
+	
 	call dlstrlength
 	add rsi,rax
 	inc rsi
+	.difstatedone
 	
 	call eval
+	pop rbx
 	sub rbx,rax
 	mov rax,rbx
 	jmp .done
+.difstatement
+	push rax
+	call statementlength
+	add rsi,rax
+	add rsi,2
+	pop rax
+	jmp .difstatedone
 .done
 	pop rsi
+
+	push rax
+	push rbx
+	push rsi
+	mov al,byte[rsi]
+	call cprint
+	pop rsi
+	pop rbx
+	pop rax
+	call getregs
+	
 	ret
 
 getstatement:			;rsi - tokonified source to get statement from, statement
