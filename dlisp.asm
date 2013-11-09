@@ -2,6 +2,8 @@
 	dlispadrs dq 0
 	dlisptemp dq 0
 
+	listchar db 'list',0
+
 rundlisp:			;rsi - string to interpret
 	call validatedlisp
 	cmp rax,0
@@ -11,6 +13,8 @@ rundlisp:			;rsi - string to interpret
 	mov [dlisppage],rbx
 	mov [dlispadrs],rax
 	mov qword[dlisptemp],rax
+	call malocbig
+	call malocbig
 
 	call tokenify
 	mov [.temp],rsi
@@ -19,10 +23,23 @@ rundlisp:			;rsi - string to interpret
 	call getstatement
 
 	call eval
+
+	cmp ax,'Ss'
+	jne .int
+	mov rsi,rdi
+	call sprint
+	jmp .outdone
+	
+	.int
 	call iprint
+	.outdone
 	call newline
 	
 	mov rax,[dlisppage]
+	call freebig
+	add rax,1
+	call freebig
+	add rax,1
 	call freebig
 	jmp .done
 .err
@@ -44,20 +61,48 @@ eval:				;rsi - tokonified dlisp to eval
 	je .sum
 	cmp byte[rsi],'-'
 	je .dif
+	cmp byte[rsi],'*'
+	je .mul
+	cmp byte[rsi],'/'
+	je .div
+
+	cmp byte[rsi],"'"
+	je .str
 	
 	jmp .done
 .parse
 	call getstatement
 	call eval
 	jmp .done
+
+.str
+	mov ax,'Ss'
+	mov rdi,rsi
+	add rdi,2
+	jmp .done
 	
 .char
 	cmp byte[rsi],'9'
 	jle .num
+
+	mov rdi,listchar
+	call compare
+	je .list
+	
 	jmp .done
 	
 .num
 	call toint
+	jmp .done
+
+.list
+	add rsi,5
+	call getlist
+	push rsi
+	call dump
+	pop rsi
+	add rsi,16
+	call dump
 	jmp .done
 	
 .sum
@@ -95,6 +140,59 @@ eval:				;rsi - tokonified dlisp to eval
 	pop rax
 	jmp .sumstatedone
 	
+.mul
+	add rsi,2
+	call eval
+	mov rbx,rax
+	push rbx
+	
+	cmp byte[rsi],'('
+	je .mulstatement
+	
+	call dlstrlength
+	add rsi,rax
+	inc rsi
+	.mulstatedone
+	
+	call eval
+	pop rbx
+	mul rbx
+	jmp .done
+.mulstatement
+	push rax
+	call statementlength
+	add rsi,rax
+	add rsi,2
+	pop rax
+	jmp .mulstatedone
+
+.div
+	add rsi,2
+	call eval
+	mov rbx,rax
+	push rbx
+	
+	cmp byte[rsi],'('
+	je .divstatement
+	
+	call dlstrlength
+	add rsi,rax
+	inc rsi
+	.divstatedone
+	
+	call eval
+	pop rbx
+	xchg rax,rbx
+	div rbx
+	jmp .done
+.divstatement
+	push rax
+	call statementlength
+	add rsi,rax
+	add rsi,2
+	pop rax
+	jmp .divstatedone
+	
 .dif
 	add rsi,2
 	call eval
@@ -121,6 +219,7 @@ eval:				;rsi - tokonified dlisp to eval
 	add rsi,2
 	pop rax
 	jmp .difstatedone
+	
 .done
 	pop rsi
 
@@ -136,6 +235,54 @@ eval:				;rsi - tokonified dlisp to eval
 	
 	ret
 
+getlist:			;rsi - token string to get list from, list
+	;; '(a b) 'c '(1 2 3) => (a b c 1 2 3)
+	call malocbig
+	mov rdi,rax
+	mov r8,rax
+.loop
+	cmp byte[rsi],254
+	je .done
+	
+	cmp byte[rsi],"'"
+	je .quote
+	
+	jmp .loop
+.quote
+	push rsi
+	cmp byte[rsi + 2],'('
+	je .bigquote
+
+	add rsi,2
+	call copystring
+	
+	call strlength
+	add rdi,rax
+	add rdi,1
+	mov byte[rdi],0
+
+	pop rsi
+	add rsi,rax
+	add rsi,3
+	jmp .loop
+.bigquote
+	add rsi,2
+	call getstatement
+	call copystatement
+
+	pop rsi
+	call statementlength
+	add rsi,rax
+	add rsi,2
+	jmp .loop
+.done
+	mov byte[rdi],0
+	mov byte[rdi],254
+	mov [dlisptemp],rdi
+	add qword[dlisptemp],3 
+	mov rsi,r8
+	ret
+	
 getstatement:			;rsi - tokonified source to get statement from, statement
 	;; (+ 1 1) => ( + 1 1 ) => + 1 1
 	;; ^String    ^Token       ^Statement!
@@ -218,6 +365,8 @@ tokenify:			;rsi - string to tokenify
 	cmp byte[rsi],'*'
 	je .addtok
 	cmp byte[rsi],'/'
+	je .addtok
+	cmp byte[rsi],"'"
 	je .addtok
 
 	cmp byte[rsi],'0'
@@ -311,6 +460,9 @@ statementlength:			;rsi - string to count length of
 .loop
 	cmp byte[rsi],')'
 	je .done
+	cmp byte[rsi],254
+	je .done
+
 
 	inc rax
 	inc rsi
@@ -345,3 +497,16 @@ validatedlisp:				;rsi - string to validate
 	pop rsi
 	ret
 
+copystatement:	        	;rsi - source, sdi - dest
+	push rax
+.loop
+	mov al,byte[rsi]
+	cmp al,254
+	je .done
+	mov byte[rdi],al
+	inc rsi
+	inc rdi
+	jmp .loop
+.done
+	pop rax
+	ret	
