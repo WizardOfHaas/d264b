@@ -31,7 +31,15 @@ rundlisp:			;rsi - string to interpret
 	jmp .outdone
 	
 	.int
+	cmp ax,'Ll'
+	je .list
 	call iprint
+	jmp .outdone
+
+	.list
+	mov rsi,rdi
+	call listprint
+	
 	.outdone
 	call newline
 	
@@ -98,11 +106,8 @@ eval:				;rsi - tokonified dlisp to eval
 .list
 	add rsi,5
 	call getlist
-	push rsi
-	call dump
-	pop rsi
-	add rsi,16
-	call dump
+	mov ax,'Ll'
+	mov rdi,rsi
 	jmp .done
 	
 .sum
@@ -239,7 +244,7 @@ getlist:			;rsi - token string to get list from, list
 	;; '(a b) 'c '(1 2 3) => (a b c 1 2 3)
 	call malocbig
 	mov rdi,rax
-	mov r8,rax
+	push rax
 .loop
 	cmp byte[rsi],254
 	je .done
@@ -276,16 +281,14 @@ getlist:			;rsi - token string to get list from, list
 	add rsi,2
 	jmp .loop
 .done
-	mov byte[rdi],0
 	mov byte[rdi],254
-	mov [dlisptemp],rdi
-	add qword[dlisptemp],3 
-	mov rsi,r8
+	pop rsi
 	ret
 	
 getstatement:			;rsi - tokonified source to get statement from, statement
 	;; (+ 1 1) => ( + 1 1 ) => + 1 1
 	;; ^String    ^Token       ^Statement!
+	push rdi
 .loop0
 	cmp byte[rsi],'('
 	je .next
@@ -334,6 +337,7 @@ getstatement:			;rsi - tokonified source to get statement from, statement
 	mov byte[rsi + rax],254
 	add rax,3
 	add [dlisptemp], rax
+	pop rdi
 	ret
 
 tokenify:			;rsi - string to tokenify
@@ -510,3 +514,23 @@ copystatement:	        	;rsi - source, sdi - dest
 .done
 	pop rax
 	ret	
+
+listprint:
+	push rsi
+.loop
+	mov al,[rsi]
+	cmp al,254
+	je .done
+	inc rsi
+	cmp al,13
+	je .nl
+	push rsi
+	call cprint
+	pop rsi
+	jmp .loop
+.nl
+	call newline
+	jmp .loop
+.done
+	pop rsi
+	ret
