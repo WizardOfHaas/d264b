@@ -2,7 +2,10 @@
 	dlispadrs dq 0
 	dlisptemp dq 0
 
-	listchar db 'list',0
+	listchar db 'cons',0
+	setfchar db 'setf',0
+	carchar db 'car',0
+	cdrchar db 'cdr',0
 
 rundlisp:			;rsi - string to interpret
 	call validatedlisp
@@ -64,6 +67,8 @@ eval:				;rsi - tokonified dlisp to eval
 	jge .char
 	cmp byte[rsi],'('
 	je .parse
+	cmp byte[rsi],"'"
+	je .alist
 	
 	cmp byte[rsi],'+'
 	je .sum
@@ -83,6 +88,10 @@ eval:				;rsi - tokonified dlisp to eval
 	call eval
 	jmp .done
 
+.alist
+	call getlist
+	jmp .done
+	
 .str
 	mov ax,'Ss'
 	mov rdi,rsi
@@ -96,6 +105,18 @@ eval:				;rsi - tokonified dlisp to eval
 	mov rdi,listchar
 	call compare
 	je .list
+
+	mov rdi,setfchar
+	call compare
+	je .setf
+
+	mov rdi,carchar
+	call compare
+	je .car
+
+	mov rdi,cdrchar
+	call compare
+	je .cdr
 	
 	jmp .done
 	
@@ -103,6 +124,54 @@ eval:				;rsi - tokonified dlisp to eval
 	call toint
 	jmp .done
 
+.setf
+	
+	jmp .done
+
+.car
+	add rsi,4
+	call getlist
+
+	mov rdi,[dlisptemp]
+	push rdi
+	call copystring
+	
+	call strlength
+	add [dlisptemp],rax
+	add rdi,rax
+	mov byte[rdi + 1],254
+	
+	pop rdi
+	mov ax,'Ll'
+	jmp .done
+
+.cdr
+	add rsi,4
+	call getlist
+
+	call counttokens
+	cmp rax,1
+	je .cdr1
+
+	call strlength
+	add rsi,rax
+	add rsi,1
+	mov rdi,rsi
+	
+	mov ax,'Ll'
+	jmp .done
+.cdr1
+	push rsi
+	call strlength
+	add rsi,rax
+	mov byte[rsi + 1],254
+	pop rdi
+
+	call dump
+	
+	mov ax,'Ll'
+	jmp .done
+	
 .list
 	add rsi,5
 	call getlist
@@ -251,6 +320,11 @@ getlist:			;rsi - token string to get list from, list
 	
 	cmp byte[rsi],"'"
 	je .quote
+
+	cmp byte[rsi],'('
+	je .eval
+	cmp byte[rsi],'0'
+	jge .eval
 	
 	jmp .loop
 .quote
@@ -279,6 +353,9 @@ getlist:			;rsi - token string to get list from, list
 	call statementlength
 	add rsi,rax
 	add rsi,2
+	jmp .loop
+.eval
+	call eval
 	jmp .loop
 .done
 	mov byte[rdi],254
@@ -467,7 +544,6 @@ statementlength:			;rsi - string to count length of
 	cmp byte[rsi],254
 	je .done
 
-
 	inc rax
 	inc rsi
 	jmp .loop
@@ -475,6 +551,26 @@ statementlength:			;rsi - string to count length of
 	pop rsi
 	ret
 
+counttokens:				;rsi - count tokens here
+	push rsi
+	xor rax,rax
+.loop
+	cmp byte[rsi],254
+	je .done
+	cmp byte[rsi],0
+	je .count
+	
+	inc rsi
+	jmp .loop
+.count
+	inc rsi
+	inc rax
+	jmp .loop
+.done
+	pop rsi
+
+	ret
+	
 validatedlisp:				;rsi - string to validate
 	push rsi
 	xor rax,rax
