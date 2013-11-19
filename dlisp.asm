@@ -90,6 +90,7 @@ eval:				;rsi - tokonified dlisp to eval
 
 .alist
 	call getlist
+	mov rdi,rsi
 	jmp .done
 	
 .str
@@ -130,7 +131,8 @@ eval:				;rsi - tokonified dlisp to eval
 
 .car
 	add rsi,4
-	call getlist
+	call eval
+	mov rsi,rdi
 
 	mov rdi,[dlisptemp]
 	push rdi
@@ -147,7 +149,8 @@ eval:				;rsi - tokonified dlisp to eval
 
 .cdr
 	add rsi,4
-	call getlist
+	call eval
+	mov rsi,rdi
 
 	call counttokens
 	cmp rax,1
@@ -323,8 +326,6 @@ getlist:			;rsi - token string to get list from, list
 
 	cmp byte[rsi],'('
 	je .eval
-	cmp byte[rsi],'0'
-	jge .eval
 	
 	jmp .loop
 .quote
@@ -356,6 +357,10 @@ getlist:			;rsi - token string to get list from, list
 	jmp .loop
 .eval
 	call eval
+	call copystatement
+	call statementlength
+	add rsi,rax
+	add rsi,2
 	jmp .loop
 .done
 	mov byte[rdi],254
