@@ -169,17 +169,15 @@ eval:				;rsi - tokonified dlisp to eval
 	add rsi,rax
 	mov byte[rsi + 1],254
 	pop rdi
-
-	call dump
 	
 	mov ax,'Ll'
 	jmp .done
 	
 .list
 	add rsi,5
-	call getlist
+	call eval
+
 	mov ax,'Ll'
-	mov rdi,rsi
 	jmp .done
 	
 .sum
@@ -303,8 +301,7 @@ eval:				;rsi - tokonified dlisp to eval
 	push rax
 	push rbx
 	push rsi
-	mov al,byte[rsi]
-	call cprint
+	call sprint
 	pop rsi
 	pop rbx
 	pop rax
@@ -358,9 +355,13 @@ getlist:			;rsi - token string to get list from, list
 .eval
 	call eval
 	call copystatement
+
 	call statementlength
 	add rsi,rax
-	add rsi,2
+	add rdi,rax
+	add rdi,2
+	call dump
+	add rsi,2		;When returns has a buffer miss, fix that shit!
 	jmp .loop
 .done
 	mov byte[rdi],254
@@ -613,6 +614,7 @@ copystatement:	        	;rsi - source, sdi - dest
 	inc rdi
 	jmp .loop
 .done
+	mov byte[rdi + 1],254
 	pop rax
 	ret	
 
