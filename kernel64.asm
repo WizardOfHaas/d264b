@@ -55,14 +55,25 @@ ypos db 0
 %include 'shell.asm'
 
 clearscreen:
-	xor ax,ax
-	mov rsi,0xB8000
-	mov rdi,0xB8800
-	call fillmem
-.done
-	mov byte[xpos],0
-	mov byte[ypos],0
-ret
+	; save registers
+	push	rax
+	push	rcx
+	push	rdi
+
+	xor	rax,	rax	; clear with 0x0000 "black nothing"
+	mov	rcx,	80 * 25	; 80 columns * 25 rows
+	mov	rdi,	0xB8000	; pointer to Video Memory (color text mode)
+	rep	stosw	; move ax to [rdi], increment rdi by 2, decrement rcx by 1, if rcx > 0 do it again
+
+	; restore registers
+	pop	rdi
+	pop	rcx
+	pop	rdi
+
+	mov	byte [xpos],	0
+	mov	byte [ypos], 	0
+
+	ret
 
 sprint:
 	push rsi
