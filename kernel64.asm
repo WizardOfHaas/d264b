@@ -120,11 +120,23 @@ inccurs:
 ret
 
 scrollup:
-	mov rax,4000
-	mov rsi,0xB80A0
-	mov rdi,0xB8000
-	call movemem
-ret
+	; save registers
+	push	rsi
+	push	rdi
+	push	rcx
+
+	; copy lines 1..25 to lines 0..24
+	mov	rsi,	0b80a0h	; from first line
+	mov	rdi,	0b8000h	; copy to zero line
+	mov	rcx,	160 * 24	; 160 Bytes per line (char & atribute) * 24 lines
+	rep	movsw	; increment rsi & rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
+
+	; restore registers
+	pop	rcx
+	pop	rdi
+	pop	rsi
+
+	ret
 
 cprint:
 	push rdi	
