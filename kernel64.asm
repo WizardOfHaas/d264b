@@ -126,10 +126,16 @@ scrollup:
 	push	rcx
 
 	; copy lines 1..25 to lines 0..24
-	mov	rsi,	0b80a0h	; from first line
-	mov	rdi,	0b8000h	; copy to zero line
-	mov	rcx,	160 * 24	; 160 Bytes per line (char & atribute) * 24 lines
-	rep	movsw	; increment rsi & rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
+	mov	rsi,	0xB80A0	; from first line
+	mov	rdi,	0xB8000	; copy to zero line
+  	mov	rcx,	160 * 24	; 160 Bytes per line (char & atribute) * 24 lines
+  	rep	movsw	; increment rsi & rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
+  
+	; clear 25th line
+	xor	rax,	rax	; black "{:space:}"
+	mov	rdi,	0xB8FA0	; line 25th
+	mov	rcx,	160	; 160 Bytes per line, (char + atribute) * 80
+	rep	stosw	; move ax to [rdi], increment rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
 
 	; restore registers
 	pop	rcx
