@@ -41,7 +41,6 @@ end:
 	call yield
 jmp end
 
-db 'For Jamie'
 buffer times 256 db 0
 vinfo times 16 db 0
 splash db 'd264b - Built with Dreckig OS Technology',13,'copyright 2013-2015 Sean Haas',13,0
