@@ -81,6 +81,9 @@ dlispcmd:
 	.prmpt db 'DLISP>',0
 
 cmdstrings:
+clear:
+	db 'clear',0,0,0
+	dq clearscreen
 help:
 	db 'help',0,0,0,0
 	dq helpcmd

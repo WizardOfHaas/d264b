@@ -34,11 +34,11 @@ start:
 
 	call initmm
 	call inittask
-	
+
 	mov rax,shell
-	call schedule
+	call schedule		;Schedule shell process
 end:
-	call yield
+	call yield		;Give control to the tasker
 jmp end
 
 buffer times 256 db 0
@@ -342,8 +342,12 @@ ret
 input:		;rdi - string to typietype into
 .loop
 	call getkey
+
 	cmp al,0
 	je .loop
+	cmp al,1
+	je .loop
+	
 	cmp al,0x1C
 	je .done
 	cmp al,0x0E
@@ -424,7 +428,7 @@ keylayoutlower:
 keylayoutupper:
 	db 0x00, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0x0e, 0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x1c, 0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0, 0, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, 0, 0, ' ', 0
 	;;  0e = backspace
-	;;  1c = enter
+	;;  1c = enter"
 	
 void:
 db 'void'

@@ -6,7 +6,9 @@
 	setfchar db 'setf',0
 	carchar db 'car',0
 	cdrchar db 'cdr',0
-
+	evalchar db 'eval',0
+	eqchar db 'eq',0
+	
 rundlisp:			;rsi - string to interpret
 	call validatedlisp
 	cmp rax,0
@@ -119,12 +121,30 @@ eval:				;rsi - tokonified dlisp to eval
 	call compare
 	je .cdr
 	
+	mov rdi,evalchar
+	call compare
+	je .evalcmd
+
+	mov rdi, eqchar
+	call compare
+	je .eq
+	
 	jmp .done
 	
 .num
 	call toint
 	jmp .done
 
+.eq	
+	add rsi,3
+	call eq
+	jmp .done
+	
+.evalcmd
+	add rsi,5
+	call eval
+	jmp .done
+	
 .setf
 	
 	jmp .done
@@ -309,6 +329,44 @@ eval:				;rsi - tokonified dlisp to eval
 	
 	ret
 
+eq:				;rsi - input (this is for the interpreter, don't call it yourself)
+	cmp byte[rsi], '('	;This is the part to fix next
+	je .statement
+	call strlength
+	jmp .next	
+.statement
+	mov bl,254
+	call indexof
+.next
+	push rax
+	call eval
+	pop rax
+	push rdi
+	
+	cmp byte[rsi], '('
+	je .statement2
+	call strlength
+.statement2
+	mov bl,254
+	call indexof
+
+	push rax
+	call eval
+	pop rax
+	
+	pop rsi
+	call compare
+	jc .t
+.nil
+	mov byte[rdi],'N'
+	jmp .done
+.t
+	mov byte[rdi],'T'
+.done
+	mov byte[rdi + 1],0
+	mov rax,'Ss'
+	ret
+	
 getlist:			;rsi - token string to get list from, list
 	;; '(a b) 'c '(1 2 3) => (a b c 1 2 3)
 	call malocbig
@@ -541,6 +599,20 @@ strlength:			;rsi - string to count length of
 	pop rsi
 	ret
 
+indexof:			;rsi - string to count length of, bl - char
+	push rsi
+	xor rax,rax
+.loop
+	cmp byte[rsi],bl
+	je .done
+
+	inc rax
+	inc rsi
+	jmp .loop
+.done
+	pop rsi
+	ret
+	
 statementlength:			;rsi - string to count length of
 	push rsi
 	xor rax,rax
