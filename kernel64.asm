@@ -18,10 +18,12 @@ USE64
 
 start:
 	call clearscreen
-
+	
 	mov rsi,splash
 	call sprint
-	call getregs
+
+	mov rsi,buildinfo
+	call sprint
 
 	mov eax,0
 	cpuid
@@ -47,6 +49,7 @@ splash db 'd264b - Built with Dreckig OS Technology',13,'copyright 2013-2015 Sea
 xpos db 0
 ypos db 0
 	
+%include 'build.asm'
 %include 'memc.asm'
 %include 'task.asm'
 %include 'dlisp.asm'
