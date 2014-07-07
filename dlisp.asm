@@ -137,6 +137,7 @@ eval:				;rsi - tokonified dlisp to eval
 
 .eq	
 	add rsi,3
+	call dump
 	call eq
 	jmp .done
 	

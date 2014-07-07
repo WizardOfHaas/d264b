@@ -344,6 +344,10 @@ ret
 
 input:		;rdi - string to typietype into
 .loop
+	mov al,'_'
+	call cprint
+	dec byte[xpos]
+	
 	call getkey
 
 	cmp al,0
@@ -361,6 +365,9 @@ input:		;rdi - string to typietype into
 	jmp .loop
 .back
 	dec rdi
+	dec byte[xpos]
+	mov al,' '
+	call cprint
 	dec byte[xpos]
 	jmp .loop
 .done
