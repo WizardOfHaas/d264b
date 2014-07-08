@@ -331,41 +331,60 @@ eval:				;rsi - tokonified dlisp to eval
 	ret
 
 eq:				;rsi - input (this is for the interpreter, don't call it yourself)
-	cmp byte[rsi], '('	;This is the part to fix next
-	je .statement
-	call strlength
-	jmp .next	
-.statement
-	mov bl,254
-	call indexof
-.next
-	push rax
-	call eval
-	pop rax
-	push rdi
-	
-	cmp byte[rsi], '('
-	je .statement2
-	call strlength
-.statement2
-	mov bl,254
-	call indexof
+	call counttokens
+	cmp rax,2
+	je .nums
+	.nvm
 
-	push rax
-	call eval
-	pop rax
+	call dump
 	
-	pop rsi
+	jmp .done
+.nums
+	cmp byte[rsi],57
+	jg .nvm
+	call strlength
+	mov rdi,rsi
+	add rdi,rax
+	add rdi,1
+
+.cmp	
 	call compare
 	jc .t
 .nil
+	mov rdi,[dlisptemp]
 	mov byte[rdi],'N'
 	jmp .done
 .t
+	mov rdi,[dlisptemp]
 	mov byte[rdi],'T'
 .done
 	mov byte[rdi + 1],0
 	mov rax,'Ss'
+	ret
+
+getargs:				;rsi - token string to sperate into argument list
+	;; ' a ' b ( + 1 1 ) => ' a/' b/( + 1 1)
+	;; rax -> number of args
+	push rsi
+	xor rbx,rbx
+.loop
+	mov al,byte[rsi]
+
+	cmp al,' '
+	je .split
+	cmp al,254
+	je .done
+
+	inc rsi
+	jmp .loop
+.split
+	mov byte[rsi],254
+	inc rsi
+	inc rbx
+	jmp .loop
+.done
+	mov rax,rbx
+	pop rsi
 	ret
 	
 getlist:			;rsi - token string to get list from, list
@@ -514,6 +533,8 @@ tokenify:			;rsi - string to tokenify
 	je .addtok
 	cmp byte[rsi],"'"
 	je .addtok
+	cmp byte[rsi],' '
+	je .addtok
 
 	cmp byte[rsi],'0'
 	jge .addstr
@@ -629,7 +650,7 @@ statementlength:			;rsi - string to count length of
 .done
 	pop rsi
 	ret
-
+	
 counttokens:				;rsi - count tokens here
 	push rsi
 	xor rax,rax
