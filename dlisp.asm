@@ -336,9 +336,12 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	je .nums
 	.nvm
 
+	call getargs
 	call dump
+
+	call eval
 	
-	jmp .done
+	jmp .cmp
 .nums
 	cmp byte[rsi],57
 	jg .nvm
@@ -370,13 +373,38 @@ getargs:				;rsi - token string to sperate into argument list
 .loop
 	mov al,byte[rsi]
 
-	cmp al,' '
-	je .split
 	cmp al,254
 	je .done
+	cmp al,"'"
+	je .quote
 
 	inc rsi
+	
 	jmp .loop
+.quote
+	mov al,byte[rsi + 1]
+	cmp al,'('
+	je .bigquote
+	
+	add rsi,2
+	call strlength		
+	add rsi,rax
+
+	mov rdi,rsi
+	inc rdi
+	mov bl,254
+	call indexof
+	
+	call getregs
+	call memcpy
+
+	inc rsi
+	mov byte[rsi],254
+	inc rsi
+	jmp .loop
+.bigquote
+	
+	jmp .done
 .split
 	mov byte[rsi],254
 	inc rsi

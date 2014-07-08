@@ -75,6 +75,34 @@ movemem:	;rsi - source, rdi - dest, rax - size
 	pop rax
 ret
 
+memcpy:				;Working movemem, uses same args
+	push rsi
+	push rax
+	push rdi
+
+	push rax
+	call malocbig
+	mov [.tmp],rax
+	mov [.pg],rbx
+	pop rax
+	
+	mov rdi,[.tmp]
+	call movemem
+
+	pop rdi
+	mov rsi,[.tmp]
+	call movemem
+
+	mov rax,[.pg]
+	call freebig
+	
+	pop rax
+	pop rsi
+	ret
+
+	.tmp dq 0
+	.pg dq 0
+	
 copystring:	;rsi - source, sdi - dest
 	push rsi
 	push rdi
