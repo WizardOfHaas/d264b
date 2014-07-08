@@ -394,11 +394,11 @@ getargs:				;rsi - token string to sperate into argument list
 	inc rdi
 	mov bl,254
 	call indexof
+	inc rax
+	inc rsi
 	
-	call getregs
 	call memcpy
 
-	inc rsi
 	mov byte[rsi],254
 	inc rsi
 	jmp .loop

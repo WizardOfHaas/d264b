@@ -91,7 +91,8 @@ memcpy:				;Working movemem, uses same args
 
 	pop rdi
 	mov rsi,[.tmp]
-	call movemem
+	;; Make this copy it back where it needs to go
+	call dump
 
 	mov rax,[.pg]
 	call freebig
