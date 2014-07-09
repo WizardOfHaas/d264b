@@ -391,7 +391,7 @@ getargs:				;rsi - token string to sperate into argument list
 	add rsi,rax
 
 	mov rdi,rsi
-	inc rdi
+	add rdi,2
 	mov bl,254
 	call indexof
 	inc rax

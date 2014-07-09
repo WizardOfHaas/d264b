@@ -75,7 +75,7 @@ movemem:	;rsi - source, rdi - dest, rax - size
 	pop rax
 ret
 
-memcpy:				;Working movemem, uses same args
+memcpy:				;Working movemem, uses same args but buffers the data to avoid loops of death
 	push rsi
 	push rax
 	push rdi
@@ -91,8 +91,8 @@ memcpy:				;Working movemem, uses same args
 
 	pop rdi
 	mov rsi,[.tmp]
-	;; Make this copy it back where it needs to go
-	call dump
+	call movemem
+	
 
 	mov rax,[.pg]
 	call freebig
