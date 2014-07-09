@@ -1,3 +1,5 @@
+	dlisptest db "(eq '(a) '(b))",0
+
 	dlisppage dq 0
 	dlispadrs dq 0
 	dlisptemp dq 0
@@ -390,7 +392,7 @@ getargs:				;rsi - token string to sperate into argument list
 	
 	jmp .loop
 .quote
-	mov al,byte[rsi + 1]
+	mov al,byte[rsi + 2]
 	cmp al,'('
 	je .bigquote
 	
@@ -411,8 +413,22 @@ getargs:				;rsi - token string to sperate into argument list
 	inc rsi
 	jmp .loop
 .bigquote
+	add rsi,2
+	call pstmlen
 	
-	jmp .done
+	add rsi,rax
+	inc rsi
+	mov rdi,rsi
+		
+	mov bl,254
+	call indexof
+	inc rdi
+	
+	call memcpy
+
+	mov byte[rsi],254
+	
+	jmp .loop
 .split
 	mov byte[rsi],254
 	inc rsi
@@ -672,6 +688,8 @@ indexof:			;rsi - string to count length of, bl - char
 	ret
 	
 statementlength:			;rsi - string to count length of
+	;; I BLAME THIS FOR RUINING THE RECURSION ON CONS!!
+	;;  MUST FIX!!!
 	push rsi
 	xor rax,rax
 .loop
@@ -684,6 +702,46 @@ statementlength:			;rsi - string to count length of
 	inc rsi
 	jmp .loop
 .done
+	pop rsi
+	ret
+
+	
+pstmlen:				;rsi - string, rax, length of statement
+	push rsi
+	xor rax,rax
+	xor rbx,rbx
+.loop
+	cmp byte[rsi],'('
+	je .open
+	cmp byte[rsi],')'
+	je .close
+
+	cmp byte[rsi],254
+	je .end
+	cmp rax,0
+	je .end
+	
+	inc rsi
+	inc rbx
+	jmp .loop
+.open
+	inc rax
+	inc rbx
+	inc rsi
+	jmp .loop
+.close
+	dec rax
+	inc rbx
+	inc rsi
+	jmp .loop
+
+.end
+	clc
+	cmp rax,0
+	je .done
+	stc
+.done
+	mov rax,rbx
 	pop rsi
 	ret
 	

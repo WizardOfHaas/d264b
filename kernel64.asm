@@ -1,4 +1,4 @@
-;   This program is free software: you can redistribute it and/or modify
+B;   This program is free software: you can redistribute it and/or modify
 ;   it under the terms of the GNU General Public License as published by
 ;   the Free Software Foundation, either version 3 of the License, or
 ;   (at your option) any later version.
@@ -39,6 +39,9 @@ start:
 
 	mov rax,shell
 	call schedule		;Schedule shell process
+
+	mov rsi,dlisptest
+	call rundlisp
 end:
 	call yield		;Give control to the tasker
 jmp end
