@@ -340,7 +340,7 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 
 	call getargs
 	call dump
-
+	
 	call eval
 	push rdi
 	
@@ -422,12 +422,13 @@ getargs:				;rsi - token string to sperate into argument list
 		
 	mov bl,254
 	call indexof
+	inc rax
 	inc rdi
 	
 	call memcpy
 
 	mov byte[rsi],254
-	
+	inc rsi
 	jmp .loop
 .split
 	mov byte[rsi],254
