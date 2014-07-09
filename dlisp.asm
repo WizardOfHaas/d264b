@@ -340,6 +340,14 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	call dump
 
 	call eval
+	push rdi
+	
+	mov bl,254
+	call indexof
+	add rsi,rax
+	inc rsi
+	call eval
+	pop rsi	
 	
 	jmp .cmp
 .nums
