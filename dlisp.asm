@@ -365,16 +365,18 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	jc .t
 .nil
 	mov rdi,[dlisptemp]
-	mov byte[rdi],'N'
+	mov rdi,.nilchar
   	jmp .done
 .t
 	mov rdi,[dlisptemp]
-	mov byte[rdi],'T'
+	mov rdi,.tchar
 .done
-	mov byte[rdi + 1],0
 	mov rax,'Ss'
 	ret
-
+	
+	.tchar db 'T',0,254
+	.nilchar db 'Nil',0,254
+	
 tkcompare:			;Compare - but for token strings!
 	push rdi
 	push rsi
@@ -420,8 +422,9 @@ getargs:				;rsi - token string to sperate into argument list
 	inc rsi
 	
 	jmp .loop
-.stmt
+.stmt				;This needs to be fixed: isn't advancing rsi correctly!!
 	call pstmlen
+	add rsi,rax
 	inc rsi
 	mov rdi,rsi
 	inc rdi
@@ -431,7 +434,7 @@ getargs:				;rsi - token string to sperate into argument list
 	call dump
 	
 	inc rsi
-	jmp .done
+	jmp .loop
 .quote
 	mov al,byte[rsi + 2]
 	cmp al,'('
