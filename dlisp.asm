@@ -1,4 +1,4 @@
-	dlisptest db "(eq '(a) '(b))",0
+	dlisptest db "(eq '(a b) '(a a))",0
 
 	dlisppage dq 0
 	dlispadrs dq 0
@@ -350,7 +350,7 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	inc rsi
 	call eval
 	pop rsi	
-	
+
 	jmp .cmp
 .nums
 	cmp byte[rsi],57
@@ -361,12 +361,12 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	add rdi,1
 
 .cmp	
-	call compare
+	call tkcompare
 	jc .t
 .nil
 	mov rdi,[dlisptemp]
 	mov byte[rdi],'N'
-	jmp .done
+  	jmp .done
 .t
 	mov rdi,[dlisptemp]
 	mov byte[rdi],'T'
@@ -375,6 +375,33 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	mov rax,'Ss'
 	ret
 
+tkcompare:			;Compare - but for token strings!
+	push rdi
+	push rsi
+	push rax
+	push rbx
+.loop
+	mov al,byte[rsi]
+	mov ah,byte[rdi]
+	cmp al,ah
+	jne .no
+	cmp al,254
+	je .eq
+	inc rdi
+	inc rsi
+	jmp .loop
+.no
+	clc
+	jmp .done
+.eq
+	stc
+.done
+	pop rbx
+	pop rax
+	pop rsi
+	pop rdi
+	ret
+	
 getargs:				;rsi - token string to sperate into argument list
 	;; ' a ' b ( + 1 1 ) => ' a/' b/( + 1 1)
 	;; rax -> number of args
