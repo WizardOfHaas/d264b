@@ -1,4 +1,4 @@
-	dlisptest db "(eq '(a b) '(a a))",0
+	dlisptest db "(eq (cons 'a) (cons 'b))",0
 
 	dlisppage dq 0
 	dlispadrs dq 0
@@ -138,8 +138,7 @@ eval:				;rsi - tokonified dlisp to eval
 	jmp .done
 
 .eq	
-	add rsi,3
-	call dump
+	add rsi,3	
 	call eq
 	jmp .done
 	
@@ -348,6 +347,7 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	call indexof
 	add rsi,rax
 	inc rsi
+	call dump
 	call eval
 	pop rsi	
 
@@ -414,10 +414,24 @@ getargs:				;rsi - token string to sperate into argument list
 	je .done
 	cmp al,"'"
 	je .quote
-
+	cmp al,'('
+	je .stmt
+	
 	inc rsi
 	
 	jmp .loop
+.stmt
+	call pstmlen
+	inc rsi
+	mov rdi,rsi
+	inc rdi
+	call getregs	
+	call memcpy
+	mov byte[rsi],254
+	call dump
+	
+	inc rsi
+	jmp .done
 .quote
 	mov al,byte[rsi + 2]
 	cmp al,'('
