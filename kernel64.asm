@@ -41,6 +41,8 @@ start:
 	call schedule		;Schedule shell process
 
 	mov rsi,dlisptest
+	call sprint
+	call newline
 	call rundlisp
 end:
 	call yield		;Give control to the tasker

@@ -1,4 +1,4 @@
-	dlisptest db "(eq (cons 'a) (cons 'b))",0
+	dlisptest db "(eq (car 'a) (car 'a))",0
 
 	dlisppage dq 0
 	dlispadrs dq 0
@@ -338,7 +338,6 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	.nvm
 
 	call getargs
-	call dump
 	
 	call eval
 	push rdi
@@ -346,8 +345,7 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	mov bl,254
 	call indexof
 	add rsi,rax
-	inc rsi
-	call dump
+	inc rsi	
 	call eval
 	pop rsi	
 
@@ -360,7 +358,13 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	add rdi,rax
 	add rdi,1
 
-.cmp	
+.cmp
+	push rsi		;Chokes on statements for some reason, at least for car
+	call dump
+	mov rsi,rdi
+	call dump
+	pop rsi
+	
 	call tkcompare
 	jc .t
 .nil
@@ -422,16 +426,18 @@ getargs:				;rsi - token string to sperate into argument list
 	inc rsi
 	
 	jmp .loop
-.stmt				;This needs to be fixed: isn't advancing rsi correctly!!
+.stmt
 	call pstmlen
 	add rsi,rax
 	inc rsi
 	mov rdi,rsi
 	inc rdi
-	call getregs	
+	inc rax
+
+	
 	call memcpy
+	mov byte[rsi - 1],0
 	mov byte[rsi],254
-	call dump
 	
 	inc rsi
 	jmp .loop
@@ -452,8 +458,8 @@ getargs:				;rsi - token string to sperate into argument list
 	inc rsi
 	
 	call memcpy
-
 	mov byte[rsi],254
+
 	inc rsi
 	jmp .loop
 .bigquote
