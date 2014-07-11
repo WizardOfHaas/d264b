@@ -164,6 +164,8 @@ eval:				;rsi - tokonified dlisp to eval
 	add [dlisptemp],rax
 	add rdi,rax
 	mov byte[rdi + 1],254
+	mov rax,2
+	add [dlisptemp],rax
 	
 	pop rdi
 	mov ax,'Ll'
@@ -368,11 +370,9 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	call tkcompare
 	jc .t
 .nil
-	mov rdi,[dlisptemp]
 	mov rdi,.nilchar
   	jmp .done
 .t
-	mov rdi,[dlisptemp]
 	mov rdi,.tchar
 .done
 	mov rax,'Ss'
