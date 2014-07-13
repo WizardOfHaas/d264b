@@ -1,4 +1,4 @@
-	dlisptest db "(eq (car 'a) (car 'a))",0
+	dlisptest db "(eval (cons '((+ 1 1))))",0
 
 	dlisppage dq 0
 	dlispadrs dq 0
@@ -144,7 +144,7 @@ eval:				;rsi - tokonified dlisp to eval
 	
 .evalcmd
 	add rsi,5
-	call eval
+	call dump		;This is for testing
 	jmp .done
 	
 .setf
@@ -360,13 +360,7 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	add rdi,rax
 	add rdi,1
 
-.cmp
-	push rsi		;Chokes on statements for some reason, at least for car
-	call dump
-	mov rsi,rdi
-	call dump
-	pop rsi
-	
+.cmp	
 	call tkcompare
 	jc .t
 .nil
