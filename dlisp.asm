@@ -1,4 +1,4 @@
-	dlisptest db "(eval (cons '((+ 1 1))))",0
+	dlisptest db "(eq (+ 1 1) (+ 1 0))",0
 
 	dlisppage dq 0
 	dlispadrs dq 0
@@ -145,6 +145,7 @@ eval:				;rsi - tokonified dlisp to eval
 .evalcmd
 	add rsi,5
 	call dump		;This is for testing
+	call eval
 	jmp .done
 	
 .setf
@@ -351,6 +352,10 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	call eval
 	pop rsi	
 
+	cmp ax,'Ss'
+	cmp ax,'Ll'
+	
+	
 	jmp .cmp
 .nums
 	cmp byte[rsi],57
@@ -360,6 +365,9 @@ eq:				;rsi - input (this is for the interpreter, don't call it yourself)
 	add rdi,rax
 	add rdi,1
 
+	call compare
+	jc .t
+	jmp .nil	
 .cmp	
 	call tkcompare
 	jc .t
