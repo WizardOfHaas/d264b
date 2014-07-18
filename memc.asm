@@ -25,6 +25,10 @@ fillmem:	;rsi - start,rdi - end,al - value
 .done
 ret
 
+malloc:				;rax - number of kb to address
+	
+	ret
+	
 malocbig:		;Out - rAX,start of 1kb page,rBX,page id
 	push rsi
 	mov rsi,void
