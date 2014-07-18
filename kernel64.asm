@@ -46,6 +46,8 @@ start:
 	call sprint
 	call newline
 	call rundlisp
+
+	call initvfs
 end:
 	call yield		;Give control to the tasker
 jmp end
@@ -61,6 +63,7 @@ ypos db 0
 %include 'task.asm'
 %include 'dlisp.asm'
 %include 'shell.asm'
+%include 'vfs.asm'
 
 clearscreen:
 	; save registers
@@ -446,5 +449,4 @@ keylayoutupper:
 	;;  0e = backspace
 	;;  1c = enter"
 	
-void:
-db 'void'
+void: db 'void'
