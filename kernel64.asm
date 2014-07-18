@@ -1,4 +1,4 @@
-B;   This program is free software: you can redistribute it and/or modify
+;   This program is free software: you can redistribute it and/or modify
 ;   it under the terms of the GNU General Public License as published by
 ;   the Free Software Foundation, either version 3 of the License, or
 ;   (at your option) any later version.
@@ -16,6 +16,8 @@ B;   This program is free software: you can redistribute it and/or modify
 USE64
 [ORG 0x0000000000100000]
 
+	db 'kernel64.asm'
+	
 start:
 	call clearscreen
 	
@@ -58,7 +60,6 @@ ypos db 0
 %include 'memc.asm'
 %include 'task.asm'
 %include 'dlisp.asm'
-%include 'emr.asm'
 %include 'shell.asm'
 
 clearscreen:

@@ -1,3 +1,5 @@
+	db 'dlisp.asm'
+	
 	dlisptest db "(eq (+ 1 1) (+ 1 0))",0
 
 	dlisppage dq 0

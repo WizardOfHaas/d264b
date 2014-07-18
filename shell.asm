@@ -1,3 +1,5 @@
+	db 'shell.asm'
+
 shell:
 	mov rsi,.prmpt
 	call sprint
@@ -96,7 +98,4 @@ regs:
 dumpchar:
 	db 'dump',0,0,0,0
 	dq dumpcmd
-emrchar
-	db 'emr',0,0,0,0,0
-	dq startemr
 endcmds: db '****'

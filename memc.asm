@@ -1,3 +1,5 @@
+	db 'memc.asm'
+
 initmm:
 	mov rsi,.msg
 	call sprint
