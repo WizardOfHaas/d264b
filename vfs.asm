@@ -58,7 +58,6 @@ initvfs:
 ;
 ; Hard Drive Functions
 ; =============================================================================
-
 ; NOTE:	These functions use LBA28. Maximum visible drive size is 128GiB
 ;	LBA48 would be needed to access sectors over 128GiB (up to 128PiB)
 

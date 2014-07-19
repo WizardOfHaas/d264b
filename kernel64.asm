@@ -62,7 +62,7 @@ ypos db 0
 %include 'dlisp.asm'
 %include 'shell.asm'
 %include 'vfs.asm'
-	
+
 clearscreen:
 	; save registers
 	push	rax
@@ -447,5 +447,4 @@ keylayoutupper:
 	;;  0e = backspace
 	;;  1c = enter"
 	
-void:
-db 'void'
+void: db 'void'
