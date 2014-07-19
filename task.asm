@@ -1,5 +1,4 @@
-	db 'task.asm'
-	
+	;; Task manager - cooperative
 	taskadrs dq 0
 	que times 512 db 0
 	curtask dq 0

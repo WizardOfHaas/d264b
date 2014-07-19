@@ -1,5 +1,3 @@
-	db 'shell.asm'
-
 shell:
 	mov rsi,.prmpt
 	call sprint

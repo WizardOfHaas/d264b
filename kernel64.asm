@@ -1,4 +1,4 @@
-;   This program is free software: you can redistribute it and/or modify
+B;   This program is free software: you can redistribute it and/or modify
 ;   it under the terms of the GNU General Public License as published by
 ;   the Free Software Foundation, either version 3 of the License, or
 ;   (at your option) any later version.
@@ -16,8 +16,6 @@
 USE64
 [ORG 0x0000000000100000]
 
-	db 'kernel64.asm'
-	
 start:
 	call clearscreen
 	
@@ -42,10 +40,12 @@ start:
 	mov rax,shell
 	call schedule		;Schedule shell process
 
-	mov rsi,dlisptest
-	call sprint
-	call newline
-	call rundlisp
+	;mov rsi,dlisptest
+	;call sprint
+	;call newline
+	;call rundlisp
+
+	call initvfs
 end:
 	call yield		;Give control to the tasker
 jmp end
@@ -61,7 +61,8 @@ ypos db 0
 %include 'task.asm'
 %include 'dlisp.asm'
 %include 'shell.asm'
-
+%include 'vfs.asm'
+	
 clearscreen:
 	; save registers
 	push	rax
