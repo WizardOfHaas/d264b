@@ -3,17 +3,53 @@
 	vfsadrs dq 0
 	vfspage dq 0
 
+	diskbuf dq 0
+
+	fat_start dw 0
+
+	fat_root db 0
+	fat_size db 0
+	fat_reserved db 0
+	fat_root_start dw 0
+	fats db 0
+	
 initvfs:
-	call malocbig
-	push rbx
-	push rax
+	call malocbig		;First.... lets get the MBR data and grab info for the first partition.....
+	mov [diskbuf],rax
 	mov rdi,rax
-	mov rax,0
+	xor rax,rax
+	call readsector
+
+	mov rdi,[diskbuf]
+	mov eax,[rdi + 0x01C6]
+	mov [fat_start],eax
+
+	mov rdi,[diskbuf]
+	call readsector
+
+	mov rdi,[diskbuf]
+	mov ax,[rdi + 0x11]
+	mov [fat_root],ax
+	mov ax,[rdi + 0x16]
+	mov [fat_size],ax
+	mov al,[rdi + 0x10]
+	mov [fats],al
+	mov ax,[rdi + 0x0E]
+	mov [fat_reserved],ax
+
+	xor rax,rax		;Not calcing root entry location right
+	mov ax,[fat_size]
+	shl ax,1
+	add ax,[fat_reserved]
+	mov [fat_root_start],eax
+	
+	mov rdi,[diskbuf]
+	call getregs
+	push rdi
 	call readsector
 	pop rsi
 	call dump
-	pop rbx
-	call freebig
+	
 	ret
 	
 ; =============================================================================
