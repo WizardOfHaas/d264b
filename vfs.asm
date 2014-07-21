@@ -7,10 +7,11 @@
 
 	fat_start dw 0
 
-	fat_root db 0
+	fat_root_ents db 0
 	fat_size db 0
 	fat_reserved db 0
 	fat_root_start dw 0
+	fat_data_start dw 0
 	fats db 0
 	
 initvfs:
@@ -24,24 +25,34 @@ initvfs:
 	mov eax,[rdi + 0x01C6]
 	mov [fat_start],eax
 
+	call getregs
 	mov rdi,[diskbuf]
+	push rdi
 	call readsector
-
+	pop rsi
+	call dump
+	
 	mov rdi,[diskbuf]
 	mov ax,[rdi + 0x11]
-	mov [fat_root],ax
+	mov [fat_root_ents],ax
 	mov ax,[rdi + 0x16]
 	mov [fat_size],ax
 	mov al,[rdi + 0x10]
 	mov [fats],al
 	mov ax,[rdi + 0x0E]
 	mov [fat_reserved],ax
-
+	
 	xor rax,rax		;Not calcing root entry location right
-	mov ax,[fat_size]
+	xor rbx,rbx
+	mov ax,[fat_size]	;So fix it here.
 	shl ax,1
 	add ax,[fat_reserved]
 	mov [fat_root_start],eax
+
+	mov bx,[fat_root_ents]
+	shr ebx,4
+	add ebx,eax
+	mov [fat_data_start],ebx
 	
 	mov rdi,[diskbuf]
 	call getregs
