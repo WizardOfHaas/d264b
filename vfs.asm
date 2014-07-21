@@ -7,14 +7,17 @@
 
 	fat_start dw 0
 
-	fat_root_ents db 0
-	fat_size db 0
-	fat_reserved db 0
-	fat_root_start dw 0
-	fat_data_start dw 0
-	fats db 0
+	fat_root_ents db 0,0
+	fat_size db 0,0
+	fat_reserved db 0,0
+	fat_root_start dw 0,0
+	fat_data_start dw 0,0
+	fats db 0,0
 	
 initvfs:
+	mov rsi,.msg
+	call sprint
+	
 	call malocbig		;First.... lets get the MBR data and grab info for the first partition.....
 	mov [diskbuf],rax
 	mov rdi,rax
@@ -25,13 +28,10 @@ initvfs:
 	mov eax,[rdi + 0x01C6]
 	mov [fat_start],eax
 
-	call getregs
 	mov rdi,[diskbuf]
-	push rdi
 	call readsector
-	pop rsi
-	call dump
-	
+
+	xor rax,rax
 	mov rdi,[diskbuf]
 	mov ax,[rdi + 0x11]
 	mov [fat_root_ents],ax
@@ -44,11 +44,13 @@ initvfs:
 	
 	xor rax,rax		;Not calcing root entry location right
 	xor rbx,rbx
-	mov ax,[fat_size]	;So fix it here.
+	mov ax,[fat_size]
 	shl ax,1
 	add ax,[fat_reserved]
+	
 	mov [fat_root_start],eax
 
+	
 	mov bx,[fat_root_ents]
 	shr ebx,4
 	add ebx,eax
@@ -60,8 +62,13 @@ initvfs:
 	call readsector
 	pop rsi
 	call dump
+
+	mov rsi,.ok
+	call sprint
 	
 	ret
+	.msg db 'Initializing VFS...',0
+	.ok db '[ok]',13,0
 	
 ; =============================================================================
 ; BareMetal -- a 64-bit OS written in Assembly for x86-64 systems
