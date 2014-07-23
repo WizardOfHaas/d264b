@@ -4,7 +4,8 @@
 	vfspage dq 0
 
 	diskbuf dq 0
-
+	fatbuf dq 0
+	
 	fat_start dw 0
 
 	fat_root_ents db 0,0
@@ -12,11 +13,14 @@
 	fat_reserved db 0,0
 	fat_root_start dw 0,0
 	fat_data_start dw 0,0
-	fats db 0,0
+	fats db 0,0	
 	
 initvfs:
 	mov rsi,.msg
 	call sprint
+
+	call malocbig
+	mov [fatbuf],rax
 	
 	call malocbig		;First.... lets get the MBR data and grab info for the first partition.....
 	mov [diskbuf],rax
@@ -47,7 +51,7 @@ initvfs:
 	mov ax,[fat_size]
 	shl ax,1
 	add ax,[fat_reserved]
-	
+	add ax,[fat_start]	
 	mov [fat_root_start],eax
 
 	
@@ -56,12 +60,8 @@ initvfs:
 	add ebx,eax
 	mov [fat_data_start],ebx
 	
-	mov rdi,[diskbuf]
-	call getregs
-	push rdi
+	mov rdi,[fatbuf]
 	call readsector
-	pop rsi
-	call dump
 
 	mov rsi,.ok
 	call sprint
