@@ -34,8 +34,24 @@ initvfs:
 
 	mov rdi,[diskbuf]
 	call readsector
-
+	
 	xor rax,rax
+
+	;; This is for the drivers ported from baremetal
+	mov ax, [rdi+0x0b]
+	mov [fat16_BytesPerSector], ax ; This will probably be 512
+	mov al, [rdi+0x0d]
+	mov [fat16_SectorsPerCluster], al ; This will be 128 or less (Max cluster size is 64KiB)
+	mov ax, [rdi+0x0e]
+	mov [fat16_ReservedSectors], ax
+	mov [fat16_FatStart], eax
+	mov al, [rdi+0x10]
+	mov [fat16_Fats], al	; This will probably be 2
+	mov ax, [rdi+0x11]
+	mov [fat16_RootDirEnts], ax
+	mov ax, [rdi+0x16]
+	mov [fat16_SectorsPerFat], ax
+
 	mov rdi,[diskbuf]
 	mov ax,[rdi + 0x11]
 	mov [fat_root_ents],ax
@@ -87,7 +103,17 @@ fat_readfile:			;rsi, file name; out rdi, where it is in ram
 	jge .done
 	jmp .loop
 .found
-	mov rsi,rdi
+	xor rax,rax
+	mov ax,[fat_start]
+	call getregs
+
+	xor rax,rax
+	mov ax,[rdi + 15]
+	call getregs
+	add ax,[fat_start]
+	mov rdi,[diskbuf]
+	call os_fat16_read_cluster
+	mov rsi,[diskbuf]
 	call dump
 .done
 	ret
@@ -269,6 +295,87 @@ readsectors_fail:
 ret
 ; -----------------------------------------------------------------------------
 
+;;  -----------------------------------------------------------------------------
+;;  os_fat16_read_cluster -- Read a cluster from the FAT16 partition
+;;  IN: AX - (cluster)
+;;  RDI - (memory location to store at least 32KB)
+;;  OUT: AX - (next cluster)
+;;  RDI - points one byte after the last byte read
+os_fat16_read_cluster:
+	push rsi
+	push rdx
+	push rcx
+	push rbx
 
+	and rax, 0x000000000000FFFF ; Clear the top 48 bits
+	mov rbx, rax		    ; Save the cluster number to be used later
+
+	cmp ax, 2		; If less than 2 then bail out...
+	jl near os_fat16_read_cluster_bailout ; as clusters start at 2
+
+	;;  Calculate the LBA address --- startingsector = (cluster-2) * clustersize + data_start
+	xor rcx, rcx
+	mov cl, byte [fat16_SectorsPerCluster]
+	push rcx		; Save the number of sectors per cluster
+	sub ax, 2
+	imul cx			; EAX now holds starting sector
+	add eax, dword [fat16_DataStart] ; EAX now holds the sector where our cluster starts
+	add eax, [fat16_PartitionOffset] ; Add the offset to the partition
+
+	pop rcx			; Restore the number of sectors per cluster
+os_fat16_read_cluster_nextsector: ; Read the sectors in one-by-one
+	call readsector
+	dec cl
+	cmp cl, 0
+	jne os_fat16_read_cluster_nextsector ; Keep going until we have a whole cluster
+
+	;;  Calculate the next cluster
+	;;  Psuedo-code
+	;;  tint1 = Cluster / 256 <- Dump the remainder
+	;;  sector_to_read = tint + ReservedSectors
+	;;  tint2 = (Cluster - (tint1 * 256)) * 2
+	push rdi
+	mov rdi, hdbuffer1	; Read to this temporary buffer
+	mov rsi, rdi		; Copy buffer address to RSI
+	push rbx		; Save the original cluster value
+	shr rbx, 8		; Divide the cluster value by 256. Keep no remainder
+	movzx ax, [fat16_ReservedSectors] ; First sector of the first FAT
+	add eax, [fat16_PartitionOffset]  ; Add the offset to the partition
+	add rax, rbx			  ; Add the sector offset
+	call readsector
+	pop rax			; Get our original cluster value back
+	shl rbx, 8		; Quick multiply by 256 (RBX was the sector offset in the FAT)
+	sub rax, rbx		; RAX is now pointed to the offset within the sector
+	shl rax, 1		; Quickly multiply by 2 (since entries are 16-bit)
+	add rsi, rax
+	lodsw			; AX now holds the next cluster
+	pop rdi
+
+	jmp os_fat16_read_cluster_end
+
+os_fat16_read_cluster_bailout:
+	xor ax, ax
+
+os_fat16_read_cluster_end:
+	pop rbx
+	pop rcx
+	pop rdx
+	pop rsi
+	ret
+
+	;;  File System
+fat16_BytesPerSector:		dw 0x0000
+fat16_SectorsPerCluster:	db 0x00
+fat16_ReservedSectors:		dw 0x0000
+fat16_FatStart:			dd 0x00000000
+fat16_Fats:			db 0x00
+fat16_SectorsPerFat:		dw 0x0000
+fat16_TotalSectors:		dd 0x00000000
+fat16_RootDirEnts:		dw 0x0000
+fat16_DataStart:		dd 0x00000000
+fat16_RootStart:		dd 0x00000000
+fat16_PartitionOffset:		dd 0x00000000
+
+hdbuffer1:			times 512 db 0
 ; =============================================================================
 ; EOF
