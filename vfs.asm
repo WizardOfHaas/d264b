@@ -58,6 +58,7 @@ initvfs:
 	mov bx,[fat_root_ents]
 	shr ebx,4
 	add ebx,eax
+	add bx,[fat_start]
 	mov [fat_data_start],ebx
 	
 	mov rdi,[fatbuf]
@@ -65,10 +66,31 @@ initvfs:
 
 	mov rsi,.ok
 	call sprint
+
+	mov rsi,.test
+	call fat_readfile
 	
 	ret
 	.msg db 'Initializing VFS...',0
 	.ok db '[ok]',13,0
+	.test db 'TEST       ',0
+
+fat_readfile:			;rsi, file name; out rdi, where it is in ram
+	mov rdi,[fatbuf]
+	mov rax,rdi
+	add rax,512
+.loop
+	add rdi,32
+	call compare
+	jc .found
+	cmp rdi,rax
+	jge .done
+	jmp .loop
+.found
+	mov rsi,rdi
+	call dump
+.done
+	ret
 	
 ; =============================================================================
 ; BareMetal -- a 64-bit OS written in Assembly for x86-64 systems
