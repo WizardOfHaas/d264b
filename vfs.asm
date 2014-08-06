@@ -62,21 +62,20 @@ initvfs:
 	mov ax,[rdi + 0x0E]
 	mov [fat_reserved],ax
 	
-	xor rax,rax		;Not calcing root entry location right
+	xor rax,rax
 	xor rbx,rbx
 	mov ax,[fat_size]
 	shl ax,1
 	add ax,[fat_reserved]
 	add ax,[fat_start]	
 	mov [fat_root_start],eax
-
 	
 	mov bx,[fat_root_ents]
 	shr ebx,4
 	add ebx,eax
-	add bx,[fat_start]
 	mov [fat_data_start],ebx
-	
+	call getregs
+
 	mov rdi,[fatbuf]
 	call readsector
 
@@ -104,17 +103,15 @@ fat_readfile:			;rsi, file name; out rdi, where it is in ram
 	jmp .loop
 .found
 	xor rax,rax
-	mov ax,[fat_start]
+	mov ebx,[fat_data_start]
+
+	add ax,[rdi + 0x1A]
+	mov cx,4
+	mul cx
+	mov rdx,rax
+	add eax,ebx
 	call getregs
 
-	xor rax,rax
-	mov ax,[rdi + 15]
-	call getregs
-	add ax,[fat_start]
-	mov rdi,[diskbuf]
-	call os_fat16_read_cluster
-	mov rsi,[diskbuf]
-	call dump
 .done
 	ret
 	
