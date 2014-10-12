@@ -84,25 +84,43 @@ clearscreen:
 
 	ret
 
+; in - rsi
+; out - none
+; all registers preserved
 sprint:
-	push rsi
-.loop
-	mov al,[rsi]
-	cmp al,0
-	je .done
-	inc rsi
-	cmp al,13
-	je .nl
-	push rsi
+	; save registers
+	push	rax
+	push	rsi
+
+.print_string:
+	; check, if end of string
+	cmp	byte [rsi]	0x00	; 0
+	je	.done	; if yes, end.
+
+	; check, if carry key
+	cmp	byte [rsi],	0x0D	; 13
+	je	.new_line	; if yes, move to new line
+
+	; print char on screen
 	call cprint
-	pop rsi
-	jmp .loop
-.nl
+
+	; print rest of string
+	jmp .print_string
+
+.new_line:
+	; move cursor to new line
 	call newline
-	jmp .loop
-.done
-	pop rsi
-ret
+
+	; print rest of string
+	jmp	.print_string
+
+.done:
+	; restore registers
+	pop	rsi
+	pop	rax
+
+	; return from procedure
+	ret
 
 inccurs:
 	mov ah,byte[xpos]
@@ -156,6 +174,10 @@ scrollup:
 cprint:
 	push rdi	
 	mov ah,0x02
+
+	; load char to register AL, increment rsi
+	lodsb
+
 	mov ecx,eax
 	movzx eax,byte[ypos]
 	mov edx,160
