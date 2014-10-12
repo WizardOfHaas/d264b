@@ -63,25 +63,29 @@ ypos db 0
 %include 'shell.asm'
 %include 'vfs.asm'
 
+; in - none
+; out - none
+; all registers preserved
 clearscreen:
 	; save registers
 	push	rax
 	push	rcx
 	push	rdi
 
-	xor	rax,	rax	; clear with 0x0000 "black nothing"
+	mov	ax,	0x0720	; lightgray "{:space:}", can't be seen, but hardware cursor must
 	mov	rcx,	80 * 25	; 80 columns * 25 rows
 	mov	rdi,	0xB8000	; pointer to Video Memory (color text mode)
-	rep	stosw	; move ax to [rdi], increment rdi by 2, decrement rcx by 1, if rcx > 0 do it again
+	rep	stosw	; copy ax to [rdi], increment rdi by 2, decrement rcx, if rcx > 0 do it again
 
 	; restore registers
 	pop	rdi
 	pop	rcx
-	pop	rdi
+	pop	rax
 
 	mov	byte [xpos],	0
 	mov	byte [ypos], 	0
 
+	; return from procedure
 	ret
 
 sprint:
@@ -128,29 +132,35 @@ inccurs:
 	add byte[xpos],1
 ret
 
+; in - none
+; out - none
+; all registers preserved
 scrollup:
-	; save registers
+	; save original registers
+	push	rax
+	push	rcx
 	push	rsi
 	push	rdi
-	push	rcx
 
-	; copy lines 1..25 to lines 0..24
-	mov	rsi,	0xB80A0	; from first line
-	mov	rdi,	0xB8000	; copy to zero line
-  	mov	rcx,	160 * 24	; 160 Bytes per line (char & atribute) * 24 lines
-  	rep	movsw	; increment rsi & rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
+	; copy lines 1..24 to lines 0..23
+	mov	rsi,	0xB8000 + (80 * 2)	; from line 1st
+	mov	rdi,	0xB8000	; copy to line ZERO
+  	mov	rcx,	80 * 24	; 80 chars per line * 24 lines
+  	rep	movsw	; copy word from [rsi] to [rdi], increment rsi & rdi by 2, decrement rcx, if rcx > 0 then do it again
   
-	; clear 25th line
-	xor	rax,	rax	; black "{:space:}"
-	mov	rdi,	0xB8FA0	; line 25th
-	mov	rcx,	160	; 160 Bytes per line, (char + atribute) * 80
-	rep	stosw	; move ax to [rdi], increment rdi by 2, decrement rcx by 2, if rcx > 0 then do it again
+	; clear 24th line
+	mov	ax,	0x0720	; lightgray "{:space:}", can't be seen, but hardware cursor must
+	mov	rdi,	0xB8000 + (80 * 2 * 24)	; line 24th
+	mov	rcx,	80	; 80 chars per line
+	rep	stosw	; copy ax to [rdi], increment rdi by 2, decrement rcx, if rcx > 0 then do it again
 
-	; restore registers
-	pop	rcx
+	; restore original registers
 	pop	rdi
 	pop	rsi
+	pop	rcx
+	pop	rax
 
+	; return from procedure
 	ret
 
 cprint:
