@@ -1,4 +1,4 @@
-B;   This program is free software: you can redistribute it and/or modify
+ ;   This program is free software: you can redistribute it and/or modify
 ;   it under the terms of the GNU General Public License as published by
 ;   the Free Software Foundation, either version 3 of the License, or
 ;   (at your option) any later version.
@@ -36,6 +36,7 @@ start:
 
 	call initmm
 	call inittask
+	call initvm
 
 	mov rax,shell
 	call schedule		;Schedule shell process
@@ -62,6 +63,7 @@ ypos db 0
 %include 'dlisp.asm'
 %include 'shell.asm'
 %include 'vfs.asm'
+%include 'vm.asm'
 
 clearscreen:
 	; save registers
