@@ -134,11 +134,38 @@ casetab:			;Opcode cases and thier handlers
 
 	;; Opcode Handlers
 movop:
-	call getregs
+	push rsi
+	add rsi,1
+	call getcase
+	pop rsi
 	ret
 
 	;; Case Parsers
-	;; 
+	;; returns:
+	;; rax: address or num(only on case 9)
+	;; bl: flag (A for address N for num E for ERROR!!!)
+getcase:			;rsi - ip for opcode case and #
+	mov bl,byte[rsi + r11]
+	xor rcx,rcx
+	
+	.loop
+	cmp byte[rcx + casetab],'*'
+	je .err
+	cmp bl,byte[rcx + casetab]
+	je .docase
+	add rcx,5
+	jmp .loop
+
+	.docase
+	mov bl,'A'
+	call [rcx + casetab + 1]
+	jmp .done
+	
+	.err
+	mov bl,'E'
+	.done
+	ret
+	
 spp:
 	ret
 ipp:
@@ -155,4 +182,5 @@ ipn:
 jsn:
 	ret
 numn:
+	mov bl,'N'
 	ret
