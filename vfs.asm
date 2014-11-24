@@ -81,11 +81,11 @@ initvfs:
 	mov rsi,.ok
 	call sprint
 
-	mov rsi,.test
-	mov rdi,[diskbuf]
-	call fat_readfile
-	mov rsi,[diskbuf]
-	call sprint
+	;mov rsi,.test
+	;mov rdi,[diskbuf]
+	;call fat_readfile
+	;mov rsi,[diskbuf]
+	;call sprint
 	
 	ret
 	.msg db 'Initializing VFS...',0

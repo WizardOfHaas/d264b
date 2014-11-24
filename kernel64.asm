@@ -27,7 +27,7 @@ start:
 
 	mov rsi,buildinfo
 	call sprint
-
+	
 	mov eax,0
 	cpuid
 	mov [vinfo],ebx
@@ -36,11 +36,13 @@ start:
 	mov rsi,vinfo
 	call sprint
 	call newline
-
-	call initmm
+	call newline
+	
+	call initmm		;Init all subsystems
 	call inittask
+	call initvfs
 	call initvm
-
+	
 	mov rax,shell
 	call schedule		;Schedule shell process
 
@@ -48,8 +50,6 @@ start:
 	;call sprint
 	;call newline
 	;call rundlisp
-
-	call initvfs
 end:
 	call yield		;Give control to the tasker
 jmp end
