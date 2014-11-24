@@ -74,7 +74,6 @@ initvfs:
 	shr ebx,4
 	add ebx,eax
 	mov [fat_data_start],ebx
-	call getregs
 
 	mov rdi,[fatbuf]
 	call readsector
@@ -83,14 +82,45 @@ initvfs:
 	call sprint
 
 	mov rsi,.test
+	mov rdi,[diskbuf]
 	call fat_readfile
+	mov rsi,[diskbuf]
+	call sprint
 	
 	ret
 	.msg db 'Initializing VFS...',0
 	.ok db '[ok]',13,0
 	.test db 'TEST       ',0
 
-fat_readfile:			;rsi, file name; out rdi, where it is in ram
+readcmd:
+	mov rsi,.msg
+	mov rdi,buffer
+	call getinput
+
+	mov rsi,buffer
+	call toint
+	push rax
+
+	call malocbig
+	mov rdi,rax
+	pop rax
+	push rdi
+	call readsector
+	pop rsi
+
+	mov rcx,16
+.dump
+	push rcx
+	call dump
+	add rsi,8
+	pop rcx
+	loop .dump
+	
+	ret
+	.msg db 'sector>',0
+	
+fat_readfile:			;rsi, file name rdi, where to put it; out rdi, where it is in ram
+	push rdi
 	mov rdi,[fatbuf]
 	mov rax,rdi
 	add rax,512
@@ -106,12 +136,14 @@ fat_readfile:			;rsi, file name; out rdi, where it is in ram
 	mov ebx,[fat_data_start]
 
 	add ax,[rdi + 0x1A]
+	sub ax,2
 	mov cx,4
 	mul cx
 	mov rdx,rax
-	add eax,ebx
-	call getregs
-
+	add eax,ebx	
+	pop rdi
+	call readsector
+	sub rdi,512
 .done
 	ret
 	

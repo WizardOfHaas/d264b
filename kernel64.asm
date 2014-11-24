@@ -16,6 +16,9 @@
 USE64
 [ORG 0x0000000000100000]
 
+	jmp start
+	db 'd264b Kernel Start'
+
 start:
 	call clearscreen
 	

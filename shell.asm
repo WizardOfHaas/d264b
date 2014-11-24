@@ -51,7 +51,7 @@ dumpcmd:
 	call dump
 	pop rcx
 	pop rsi
-	add rsi,16
+	add rsi,8
 	inc rcx
 	cmp rcx,16
 	jle .loop
@@ -93,6 +93,9 @@ dlisp:
 regs:
 	db 'regs',0,0,0,0
 	dq getregs
+readchar:
+	db 'read',0,0,0,0
+	dq readcmd
 dumpchar:
 	db 'dump',0,0,0,0
 	dq dumpcmd

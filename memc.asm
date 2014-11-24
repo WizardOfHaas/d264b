@@ -135,7 +135,7 @@ dump:		;rsi - address
 
 	xor rbx,rbx	
 .loop
-	cmp rbx,16
+	cmp rbx,8
 	jge .next
 	push rbx
 	push rsi
@@ -155,9 +155,9 @@ dump:		;rsi - address
 	mov al,'|'
 	call cprint
 	xor rbx,rbx
-	sub rsi,16
+	sub rsi,8
 .cloop
-	cmp rbx,16
+	cmp rbx,8
 	jge .done
 	push rbx
 	push rsi
