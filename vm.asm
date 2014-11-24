@@ -3,7 +3,9 @@
 	vmstab dq 0,0
 	nextvm dq 0,0	
 
-	testcode dq 0,0,'@'
+testcode:
+	db 0, 0, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
+	db '@'
 	
 initvm:				;Spin up MVMs
 	mov rsi,.msg
@@ -60,15 +62,16 @@ runvm:				;rax - vm ID, rsi, code
 	mov r12,[.vmtape]
 	
 	.loop
-
+	
 	cmp byte[rsi + r11],'@'	;let loop until the end (@) for now
 	je .break
 	
 	call vmop
 	
-	inc rsi			;next op!
 	
-	jmp .loop		
+	add rsi,16			;next op!	
+	
+	jmp .loop
 	
 	.break
 
@@ -85,5 +88,71 @@ runvm:				;rax - vm ID, rsi, code
 	.jp dq 0,0
 
 vmop:
+	mov bl,byte[rsi + r11]
+	xor rcx,rcx
 
+	.loop
+	cmp byte[rcx + optab],'*'
+	je .err
+	cmp bl,byte[rcx + optab]
+	je .runop
+	add rcx,5
+	jmp .loop
+		
+	.runop
+	call [optab + rcx + 1]
+	jmp .done
+	
+	.err
+	.done
+	ret
+	
+optab:				;Table of opcodes and their handlers
+	db 0
+	dq movop
+	db '*****'
+
+casetab:			;Opcode cases and thier handlers
+	db 0
+	dq spp
+	db 1
+	dq ipp
+	db 2
+	dq jsp
+	db 4
+	dq nump
+
+	db 5
+	dq spn
+	db 6
+	dq ipn
+	db 7
+	dq jsn
+	db 9
+	dq numn
+	db '*****'
+
+	;; Opcode Handlers
+movop:
+	call getregs
+	ret
+
+	;; Case Parsers
+	;; 
+spp:
+	ret
+ipp:
+	ret
+jsp:
+	ret
+nump:
+	ret
+
+spn:
+	ret
+ipn:
+	ret
+jsn:
+	ret
+numn:
 	ret

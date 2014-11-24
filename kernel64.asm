@@ -186,6 +186,13 @@ getregs:
 	push rdx
 	push rsi
 	push rdi
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	
 	mov r8,rax
 	mov r9,rbx
 	mov r10,rcx
@@ -223,6 +230,13 @@ getregs:
 	mov rax,r13
 	call iprint
 	call newline
+
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r9
+	pop r8
 	pop rdi
 	pop rsi
 	pop rdx
