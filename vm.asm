@@ -113,35 +113,36 @@ optab:				;Table of opcodes and their handlers
 	dq movop
 	db '*****'
 
-casetab:			;Opcode cases and thier handlers
+	;; Opcode case parser tables
+r_casetab:			;Read case parsers
 	db 0
-	dq sp0p
+	dq r_sp0p
 	db 1
-	dq sp1p
+	dq r_sp1p
 	db 2
-	dq ipp
+	dq r_ipp
 	db 3
-	dq jsp
+	dq r_jsp
 	db 4
-	dq nump
+	dq r_nump
 
 	db 5
-	dq sp0n
+	dq r_sp0n
 	db 6
-	dq sp1n
+	dq r_sp1n
 	db 7
-	dq ipn
+	dq r_ipn
 	db 8
-	dq jsn
+	dq r_jsn
 	db 9
-	dq numn
+	dq r_numn
 	db '*****'
 
 	;; Opcode Handlers
 movop:
 	push rsi
 	add rsi,1
-	call getcase
+	call r_case
 	call getregs
 	pop rsi
 	ret
@@ -150,21 +151,22 @@ movop:
 	;; returns:
 	;; rax: address or num(only on case 9)
 	;; bl: flag (A for address N for num E for ERROR!!!)
-getcase:			;rsi - ip for opcode case and #
+r_case:			;rsi - ip for opcode case and (if) arg, returns eax with the output
 	mov bl,byte[rsi + r11]
 	xor rcx,rcx
 	
 	.loop
-	cmp byte[rcx + casetab],'*'
+	cmp byte[rcx + r_casetab],'*'
 	je .err
-	cmp bl,byte[rcx + casetab]
+	cmp bl,byte[rcx + r_casetab]
 	je .docase
 	add rcx,9
 	jmp .loop
 
 	.docase
 	mov bl,'A'
-	call [rcx + casetab + 1]
+	xor rax,rax
+	call [rcx + r_casetab + 1]
 	jmp .done
 	
 	.err
@@ -172,25 +174,36 @@ getcase:			;rsi - ip for opcode case and #
 	.done
 	ret
 	
-sp0p:
+r_sp0p:
+	mov eax,[rdi + r12]
 	ret
-sp1p:
+r_sp1p:
 	ret
-ipp:
+r_ipp:
+	mov eax,[rsi + r11]
 	ret
-jsp:
+r_jsp:
+	mov eax,[r10 + r12]
 	ret
-nump:
+r_nump:
+	push rcx
+	mov ecx,[rsi + r11 + 1]
+	mov eax,[ecx]
+	pop rcx
 	ret
 
-sp0n:
+r_sp0n:
+	mov eax,edi
 	ret
-sp1n:
+r_sp1n:
 	ret
-ipn:
+r_ipn:
+	mov eax,esi
 	ret
-jsn:
+r_jsn:
+	mov eax,r10		;TODO: make this assemble
 	ret
-numn:
+r_numn:
+	mov eax,[rsi + r11]
 	mov bl,'N'
 	ret
