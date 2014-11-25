@@ -4,7 +4,8 @@
 	nextvm dq 0,0	
 
 testcode:
-	db 0, 0, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
+	db 0, 1, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
+	db 0, 2, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
 	db '@'
 	
 initvm:				;Spin up MVMs
@@ -18,7 +19,7 @@ initvm:				;Spin up MVMs
 	xor rax,rax
 	mov rsi,testcode
 	call runvm
-	
+
 	mov rsi,.ok
 	call sprint
 	ret
@@ -66,8 +67,7 @@ runvm:				;rax - vm ID, rsi, code
 	cmp byte[rsi + r11],'@'	;let loop until the end (@) for now
 	je .break
 	
-	call vmop
-	
+	call vmop	
 	
 	add rsi,16			;next op!	
 	
@@ -88,9 +88,10 @@ runvm:				;rax - vm ID, rsi, code
 	.jp dq 0,0
 
 vmop:
+	xor rbx,rbx
 	mov bl,byte[rsi + r11]
 	xor rcx,rcx
-
+	
 	.loop
 	cmp byte[rcx + optab],'*'
 	je .err
@@ -114,19 +115,23 @@ optab:				;Table of opcodes and their handlers
 
 casetab:			;Opcode cases and thier handlers
 	db 0
-	dq spp
+	dq sp0p
 	db 1
-	dq ipp
+	dq sp1p
 	db 2
+	dq ipp
+	db 3
 	dq jsp
 	db 4
 	dq nump
 
 	db 5
-	dq spn
+	dq sp0n
 	db 6
-	dq ipn
+	dq sp1n
 	db 7
+	dq ipn
+	db 8
 	dq jsn
 	db 9
 	dq numn
@@ -137,6 +142,7 @@ movop:
 	push rsi
 	add rsi,1
 	call getcase
+	call getregs
 	pop rsi
 	ret
 
@@ -153,7 +159,7 @@ getcase:			;rsi - ip for opcode case and #
 	je .err
 	cmp bl,byte[rcx + casetab]
 	je .docase
-	add rcx,5
+	add rcx,9
 	jmp .loop
 
 	.docase
@@ -166,7 +172,9 @@ getcase:			;rsi - ip for opcode case and #
 	.done
 	ret
 	
-spp:
+sp0p:
+	ret
+sp1p:
 	ret
 ipp:
 	ret
@@ -175,7 +183,9 @@ jsp:
 nump:
 	ret
 
-spn:
+sp0n:
+	ret
+sp1n:
 	ret
 ipn:
 	ret
