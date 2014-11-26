@@ -4,8 +4,8 @@
 	nextvm dq 0,0	
 
 testcode:
-	db 0, 1, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
-	db 0, 2, 0,0,0,0, 4, 0,0,0,1 ,0, 0,0,0,0
+	db 0, 1, 0,0,0,0, 9, 1,0,0,0 ,0, 0,0,0,0
+	db 0, 2, 0,0,0,0, 9, 2,0,0,0 ,0, 0,0,0,0
 	db '@'
 	
 initvm:				;Spin up MVMs
@@ -141,9 +141,11 @@ r_casetab:			;Read case parsers
 	;; Opcode Handlers
 movop:
 	push rsi
-	add rsi,1
+
+	add rsi,6
 	call r_case
 	call getregs
+	
 	pop rsi
 	ret
 
@@ -151,6 +153,7 @@ movop:
 	;; returns:
 	;; rax: address or num(only on case 9)
 	;; bl: flag (A for address N for num E for ERROR!!!)
+	;; Just flip in/out for w_case
 r_case:			;rsi - ip for opcode case and (if) arg, returns eax with the output
 	mov bl,byte[rsi + r11]
 	xor rcx,rcx
@@ -201,9 +204,12 @@ r_ipn:
 	mov eax,esi
 	ret
 r_jsn:
-	mov eax,r10		;TODO: make this assemble
+	push rcx
+	mov rcx,r10
+	mov eax,ecx
+	pop rcx
 	ret
 r_numn:
-	mov eax,[rsi + r11]
+	mov eax,[rsi + r11 + 1]
 	mov bl,'N'
 	ret
