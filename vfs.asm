@@ -118,6 +118,22 @@ readcmd:
 	
 	ret
 	.msg db 'sector>',0
+
+list_files:
+	push rsi
+	mov rsi,[fatbuf]
+	add rsi,32
+.loop
+	cmp byte[rsi],0
+	je .done
+
+	call sprint
+	call newline
+	add rsi,32
+	jmp .loop
+.done
+	pop rsi
+	ret
 	
 fat_readfile:			;rsi, file name rdi, where to put it; out rdi, where it is in ram
 	push rdi

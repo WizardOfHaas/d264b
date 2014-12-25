@@ -96,6 +96,9 @@ regs:
 readchar:
 	db 'read',0,0,0,0
 	dq readcmd
+flistchar:
+	db 'flist',0,0,0
+	dq list_files
 dumpchar:
 	db 'dump',0,0,0,0
 	dq dumpcmd

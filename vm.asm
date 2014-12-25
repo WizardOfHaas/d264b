@@ -4,8 +4,8 @@
 	nextvm dq 0,0	
 
 testcode:
-	db 0, 1, 0,0,0,0, 9, 1,0,0,0 ,0, 0,0,0,0
-	db 0, 2, 0,0,0,0, 9, 2,0,0,0 ,0, 0,0,0,0
+	db 0, 1, 0,0,0,0, 0, 0,0,0,0 ,0, 0,0,0,0
+	db 0, 2, 0,0,0,0, 3, 0,0,0,0 ,0, 0,0,0,0
 	db '@'
 	
 initvm:				;Spin up MVMs
@@ -25,6 +25,33 @@ initvm:				;Spin up MVMs
 	ret
 	.msg db 13,'Initializing MVM subsystem...',13,0
 	.ok db '[ok]',13,13,0
+
+dumpvm:				;Dump VM contents
+	push rsi
+
+	call newline
+	push rsi
+	mov rsi,.ip
+	call sprint
+	pop rax
+	call iprint
+
+	mov rsi,.sp0
+	call sprint
+	mov rax,rdi
+	call iprint
+	call newline
+	
+	mov rsi,rdi
+	add rsi,r12
+	call dump
+	call newline
+
+	pop rsi
+	ret
+	.ip db 'ip:',0
+	.sp0 db ' sp0:',0
+	.sp1 db ' sp1: ',0	
 
 newvm:				;Create new VM
 	mov rsi,.msg
@@ -68,6 +95,7 @@ runvm:				;rax - vm ID, rsi, code
 	je .break
 	
 	call vmop	
+	call dumpvm
 	
 	add rsi,16			;next op!	
 	
@@ -167,7 +195,7 @@ r_case:			;rsi - ip for opcode case and (if) arg, returns eax with the output
 	jmp .loop
 
 	.docase
-	mov bl,'A'
+	mov bl,'N'
 	xor rax,rax
 	call [rcx + r_casetab + 1]
 	jmp .done
@@ -178,7 +206,7 @@ r_case:			;rsi - ip for opcode case and (if) arg, returns eax with the output
 	ret
 	
 r_sp0p:
-	mov eax,[rdi + r12]
+	mov eax,[rdi + r12]	
 	ret
 r_sp1p:
 	ret
@@ -211,5 +239,4 @@ r_jsn:
 	ret
 r_numn:
 	mov eax,[rsi + r11 + 1]
-	mov bl,'N'
 	ret
